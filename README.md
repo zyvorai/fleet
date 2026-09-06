@@ -10,7 +10,7 @@
 [![CI](https://github.com/zyvorai/fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/fleet/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/badge/Go-1.27%2B-00ADD8.svg)](go.mod)
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
+[Quick start](#quick-start) · [Tutorial](docs/TUTORIAL.md) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
 
 </div>
 
@@ -316,6 +316,7 @@ Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): 
 
 ## Documentation
 
+- [Tutorial: getting started](docs/TUTORIAL.md) — a guided walkthrough of the web console and CLI, start to first rollout
 - [Architecture and failure model](ARCHITECTURE.md)
 - [Product plan](docs/PRODUCT_PLAN.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
