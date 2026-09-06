@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/model"
 )
 
 var safeName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.@-]{0,127}$`)

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/model"
 )
 
 type LocalState struct {

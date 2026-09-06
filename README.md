@@ -7,7 +7,7 @@
 **Offline-first edge fleet control plane for Linux, Kubernetes, containers and virtual machines.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![CI](https://github.com/zyvorai/zyvor-fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-fleet/actions/workflows/ci.yml)
+[![CI](https://github.com/zyvorai/fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/fleet/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/badge/Go-1.27%2B-00ADD8.svg)](go.mod)
 
 [Quick start](#quick-start) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
@@ -99,7 +99,7 @@ The container adapter fingerprints image, args, environment and ports and replac
 Requirements: Go 1.27+.
 
 ```bash
-git clone https://github.com/zyvorai/zyvor-fleet.git
+git clone https://github.com/zyvorai/fleet.git
 cd zyvor-fleet
 make check
 make build

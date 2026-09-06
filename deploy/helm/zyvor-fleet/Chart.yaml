@@ -6,4 +6,4 @@ appVersion: "0.2.0"
 type: application
 home: https://zyvor.dev
 sources:
-  - https://github.com/zyvorai/zyvor-fleet
+  - https://github.com/zyvorai/fleet

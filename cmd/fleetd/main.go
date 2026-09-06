@@ -13,10 +13,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/auth"
-	"github.com/zyvorai/zyvor-fleet/internal/model"
-	"github.com/zyvorai/zyvor-fleet/internal/server"
-	"github.com/zyvorai/zyvor-fleet/internal/store"
+	"github.com/zyvorai/fleet/internal/auth"
+	"github.com/zyvorai/fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/server"
+	"github.com/zyvorai/fleet/internal/store"
 )
 
 var version = "dev"

@@ -32,7 +32,7 @@ jobs:
           mkdir -p dist
           VERSION="${GITHUB_REF_NAME#v}"
           go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "dist/fleetd-${GOOS}-${GOARCH}" ./cmd/fleetd
-          go build -trimpath -ldflags="-s -w -X github.com/zyvorai/zyvor-fleet/internal/agent.Version=${VERSION}" -o "dist/fleet-agent-${GOOS}-${GOARCH}" ./cmd/fleet-agent
+          go build -trimpath -ldflags="-s -w -X github.com/zyvorai/fleet/internal/agent.Version=${VERSION}" -o "dist/fleet-agent-${GOOS}-${GOARCH}" ./cmd/fleet-agent
           go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "dist/fleetctl-${GOOS}-${GOARCH}" ./cmd/fleetctl
           cd dist && sha256sum * > "SHA256SUMS-${GOOS}-${GOARCH}.txt"
       - uses: softprops/action-gh-release@v3

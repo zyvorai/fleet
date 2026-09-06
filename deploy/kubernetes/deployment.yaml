@@ -20,7 +20,7 @@ spec:
         fsGroup: 65532
       containers:
         - name: control-plane
-          image: ghcr.io/zyvorai/zyvor-fleet:0.2.0
+          image: ghcr.io/zyvorai/fleet:0.2.0
           args: ["--listen", ":8080", "--data", "/var/lib/zyvor-fleet/state.json"]
           ports:
             - {name: http, containerPort: 8080}

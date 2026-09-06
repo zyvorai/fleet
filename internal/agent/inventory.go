@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/model"
 )
 
 func Inventory() model.Inventory {

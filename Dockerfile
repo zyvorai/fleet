@@ -8,7 +8,7 @@ COPY webui ./webui
 ARG VERSION=dev
 RUN CGO_ENABLED=0 go test ./... && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/fleetd ./cmd/fleetd && \
-    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/zyvor-fleet/internal/agent.Version=${VERSION}" -o /out/fleet-agent ./cmd/fleet-agent && \
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/fleet/internal/agent.Version=${VERSION}" -o /out/fleet-agent ./cmd/fleet-agent && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/fleetctl ./cmd/fleetctl
 
 FROM gcr.io/distroless/static-debian12:nonroot

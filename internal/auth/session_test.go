@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/model"
 )
 
 func TestSessionRoundTripAndTamper(t *testing.T) {

@@ -8,7 +8,7 @@ all: check build
 build:
 	mkdir -p $(BIN_DIR)
 	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$(VERSION)" -o $(BIN_DIR)/fleetd ./cmd/fleetd
-	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/zyvor-fleet/internal/agent.Version=$(VERSION)" -o $(BIN_DIR)/fleet-agent ./cmd/fleet-agent
+	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/fleet/internal/agent.Version=$(VERSION)" -o $(BIN_DIR)/fleet-agent ./cmd/fleet-agent
 	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$(VERSION)" -o $(BIN_DIR)/fleetctl ./cmd/fleetctl
 
 test:

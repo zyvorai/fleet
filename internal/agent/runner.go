@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
-	"github.com/zyvorai/zyvor-fleet/internal/runtimeadapter"
+	"github.com/zyvorai/fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/runtimeadapter"
 )
 
 type Config struct {

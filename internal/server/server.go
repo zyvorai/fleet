@@ -16,10 +16,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/auth"
-	"github.com/zyvorai/zyvor-fleet/internal/model"
-	"github.com/zyvorai/zyvor-fleet/internal/store"
-	"github.com/zyvorai/zyvor-fleet/webui"
+	"github.com/zyvorai/fleet/internal/auth"
+	"github.com/zyvorai/fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/store"
+	"github.com/zyvorai/fleet/webui"
 )
 
 type Config struct {

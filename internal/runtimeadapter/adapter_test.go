@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/model"
 )
 
 func TestK3sManifestReconcile(t *testing.T) {

@@ -535,7 +535,7 @@ export PATH=/usr/local/go/bin:${HOME}/go/bin:${PATH}
 cd "${REMOTE_STAGING}"
 mkdir -p bin
 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o bin/fleetd ./cmd/fleetd
-CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/zyvor-fleet/internal/agent.Version=${VERSION}" -o bin/fleet-agent ./cmd/fleet-agent
+CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/zyvorai/fleet/internal/agent.Version=${VERSION}" -o bin/fleet-agent ./cmd/fleet-agent
 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o bin/fleetctl ./cmd/fleetctl
 $SUDO install -m755 bin/fleetd /usr/local/bin/fleetd
 $SUDO install -m755 bin/fleet-agent /usr/local/bin/fleet-agent

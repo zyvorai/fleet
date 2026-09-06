@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/agent"
+	"github.com/zyvorai/fleet/internal/agent"
 )
 
 func main() {

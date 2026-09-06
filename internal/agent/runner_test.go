@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zyvorai/zyvor-fleet/internal/model"
-	"github.com/zyvorai/zyvor-fleet/internal/runtimeadapter"
+	"github.com/zyvorai/fleet/internal/model"
+	"github.com/zyvorai/fleet/internal/runtimeadapter"
 )
 
 // newTestRunner builds a Runner against a fake control-plane server, with the
