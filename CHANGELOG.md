@@ -1,5 +1,59 @@
 # Changelog
 
+## Unreleased
+
+### Web console
+
+- Full visual redesign of the embedded web console: light theme by default,
+  toggleable dark theme (proper Apple-system dark colors, not just an
+  inverted palette), collapsible sidebar, and a two-step (email, then
+  password) sign-in flow with a "remember this device" option.
+- Settings page integrations, operator management and enrollment-token
+  actions are now fully wired end-to-end (enable/disable and configure an
+  integration, edit/delete an operator, revoke a token) — these existing
+  backend endpoints previously had no UI affordance.
+- Added a "Delete site" action to the site detail drawer and a "Remove"
+  action on dynamic site groups, closing the last unreachable-from-the-UI
+  admin actions (`DELETE /api/v1/sites/{id}`, `DELETE
+  /api/v1/site-groups/{id}`).
+- Mobile sidebar drawer now has a dimming backdrop that's tappable to
+  dismiss, instead of opening with no scrim.
+- Added `aria-label`s to all modal/drawer close buttons.
+
+### Fixed
+
+- Empty API list responses (Go's `nil` slice serializes as JSON `null`)
+  were crashing the Rollouts and Events pages; normalized once at the
+  client's `api()` boundary instead of guarding every call site.
+- `GET /api/v1/enrollment-tokens` returned untagged, capitalized JSON keys
+  inconsistent with every other endpoint; added proper `json:` tags.
+- `PATCH /api/v1/users/{id}` allowed an admin to demote their own account
+  away from admin even when other admins existed; blocked explicitly.
+
+### Testing
+
+- Added test coverage for `internal/agent`'s reconciliation loop
+  (`runner.go`) — previously untested despite being the offline-autonomy
+  core the product is named for. Covers first-enrollment, the
+  local-autonomy reconciliation path when the control plane is
+  unreachable, reconnect handling, the desired-revision mismatch
+  fail-closed guard, unsupported-command acking, and revision
+  apply/fail/dedup behavior.
+
+### Deployment
+
+- Added the safe subset of systemd sandboxing directives to the edge
+  agent's unit file (`ProtectHome`, `ProtectKernelTunables`,
+  `ProtectControlGroups`, `MemoryDenyWriteExecute`, etc.), documenting why
+  `ProtectSystem`/capability restrictions are deliberately left to the
+  operator since runtime adapters need real local privilege.
+- Added resource requests/limits to the Helm chart's agent DaemonSet.
+
+### Project
+
+- Repository and Go module path renamed from `zyvor-fleet` to
+  `github.com/zyvorai/fleet`.
+
 ## 0.2.0 — 2026-09-06
 
 Production-safety and fleet-operations release.

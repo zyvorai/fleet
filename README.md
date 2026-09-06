@@ -100,7 +100,7 @@ Requirements: Go 1.27+.
 
 ```bash
 git clone https://github.com/zyvorai/fleet.git
-cd zyvor-fleet
+cd fleet
 make check
 make build
 ```
