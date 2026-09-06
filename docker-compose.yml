@@ -1,0 +1,42 @@
+services:
+  control-plane:
+    build: .
+    image: zyvor-fleet:local
+    command: ["--demo", "--listen", ":8080", "--data", "/var/lib/zyvor-fleet/state.json"]
+    environment:
+      ZYVOR_FLEET_ADMIN_PASSWORD: zyvor-fleet-demo
+      ZYVOR_FLEET_SESSION_SECRET: local-demo-session-secret-change-me-1234567890
+    ports:
+      - "8080:8080"
+    volumes:
+      - fleet-data:/var/lib/zyvor-fleet
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/fleetctl", "--server", "http://127.0.0.1:8080", "--email", "admin@zyvor.local", "--password", "zyvor-fleet-demo", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  edge-a:
+    image: zyvor-fleet:local
+    entrypoint: ["/usr/local/bin/fleet-agent"]
+    command: ["--server", "http://control-plane:8080", "--name", "factory-pune-01", "--region", "india-west", "--enrollment-token", "zf_enroll_demo-local-only", "--state", "/state/agent.json", "--labels", "class=factory,tier=production"]
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    volumes:
+      - edge-a-state:/state
+
+  edge-b:
+    image: zyvor-fleet:local
+    entrypoint: ["/usr/local/bin/fleet-agent"]
+    command: ["--server", "http://control-plane:8080", "--name", "retail-delhi-07", "--region", "india-north", "--enrollment-token", "zf_enroll_demo-local-only", "--state", "/state/agent.json", "--labels", "class=retail,tier=production"]
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    volumes:
+      - edge-b-state:/state
+
+volumes:
+  fleet-data: {}
+  edge-a-state: {}
+  edge-b-state: {}

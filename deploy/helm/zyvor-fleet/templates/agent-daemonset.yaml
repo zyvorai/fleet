@@ -1,0 +1,50 @@
+{{- if .Values.agent.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "zyvor-fleet.name" . }}-agent
+spec:
+  selector:
+    matchLabels: {app.kubernetes.io/name: zyvor-fleet-agent}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: zyvor-fleet-agent}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: agent
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/local/bin/fleet-agent"]
+          args:
+            - --server
+            - http://{{ include "zyvor-fleet.name" . }}:{{ .Values.service.port }}
+            - --name
+            - $(NODE_NAME)
+            - --region
+            - {{ .Values.agent.region | quote }}
+            - --enrollment-token
+            - $(ENROLLMENT_TOKEN)
+            - --state
+            - /state/agent.json
+            - --labels
+            - {{ .Values.agent.labels | quote }}
+          env:
+            - name: NODE_NAME
+              valueFrom: {fieldRef: {fieldPath: spec.nodeName}}
+            - name: ENROLLMENT_TOKEN
+              valueFrom: {secretKeyRef: {name: {{ default (include "zyvor-fleet.name" .) .Values.existingSecret }}, key: enrollment-token}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          # No liveness/readiness probe: fleet-agent has no HTTP listener and the
+          # image is distroless (no shell/exec target), so an httpGet or exec
+          # probe would be a no-op or a guaranteed failure, not a real check.
+          # Kubelet still restarts the container if the process exits.
+          resources: {{- toYaml .Values.agent.resources | nindent 12 }}
+          volumeMounts:
+            - {name: state, mountPath: /state}
+      volumes:
+        - name: state
+          hostPath: {path: {{ .Values.agent.stateHostPath | quote }}, type: DirectoryOrCreate}
+{{- end }}

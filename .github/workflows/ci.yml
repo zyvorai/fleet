@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Formatting
+        run: test -z "$(gofmt -l cmd internal webui)"
+      - name: Vet
+        run: go vet ./...
+      - name: Unit and integration tests
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: Web JavaScript syntax
+        run: node --check webui/static/app.js
+      - name: Build all binaries
+        run: make build
+      - name: Live control-plane and edge-agent smoke
+        run: python3 scripts/live-smoke.py

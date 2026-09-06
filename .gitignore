@@ -1,0 +1,11 @@
+/bin/
+/data/
+*.tmp
+*.log
+.DS_Store
+.env
+coverage.out
+zyvor-fleet-*.zip
+
+__pycache__/
+*.pyc

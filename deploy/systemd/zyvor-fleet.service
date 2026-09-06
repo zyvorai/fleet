@@ -1,0 +1,24 @@
+[Unit]
+Description=Zyvor Fleet control plane
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zyvor-fleet
+Group=zyvor-fleet
+EnvironmentFile=/etc/zyvor-fleet/fleet.env
+ExecStart=/usr/local/bin/fleetd --listen :8080 --data /var/lib/zyvor-fleet/state.json
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/zyvor-fleet
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

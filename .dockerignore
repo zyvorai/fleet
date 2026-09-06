@@ -1,0 +1,5 @@
+.git
+bin
+data
+*.zip
+.DS_Store

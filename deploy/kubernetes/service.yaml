@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-fleet
+  namespace: zyvor-fleet
+spec:
+  selector: {app.kubernetes.io/name: zyvor-fleet}
+  ports:
+    - {name: http, port: 8080, targetPort: http}

@@ -1,0 +1,37 @@
+[Unit]
+Description=Zyvor Fleet edge agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/zyvor-fleet/agent.env
+ExecStart=/usr/local/bin/fleet-agent --state /var/lib/zyvor-fleet-agent/agent.json
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+# The directives above are safe regardless of which runtime adapters are enabled:
+# they don't touch filesystem write access, capabilities, or the process's own
+# root privilege, so they can't break systemctl/container-engine/libvirt calls.
+#
+# Deliberately NOT set here because they depend on the adapters enabled at this
+# site: ProtectSystem=strict|full (adapters may need to write outside the agent's
+# state dir — e.g. QEMU disk images, container volumes), CapabilityBoundingSet
+# (systemd-unit and container-engine control typically need broad privilege),
+# and User=/Group= (most adapters currently require root). Narrow these once you
+# know exactly which adapters run at this site and what paths/sockets they touch.
+
+[Install]
+WantedBy=multi-user.target

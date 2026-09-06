@@ -1,0 +1,52 @@
+image:
+  repository: ghcr.io/zyvorai/zyvor-fleet
+  tag: "0.2.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+admin:
+  email: admin@zyvor.local
+  password: ""
+sessionSecret: ""
+secureCookies: false
+existingSecret: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  host: fleet.example.com
+  tlsSecret: ""
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: ""
+
+resources:
+  requests: {cpu: 50m, memory: 64Mi}
+  limits: {cpu: "1", memory: 512Mi}
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 65532
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: {drop: [ALL]}
+
+networkPolicy:
+  enabled: false
+
+agent:
+  enabled: false
+  enrollmentToken: ""
+  region: kubernetes
+  labels: "class=kubernetes-node"
+  stateHostPath: /var/lib/zyvor-fleet-agent
+  resources:
+    requests: {cpu: 10m, memory: 32Mi}
+    limits: {cpu: 200m, memory: 128Mi}

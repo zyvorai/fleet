@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zyvor-fleet
+  namespace: zyvor-fleet
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {app.kubernetes.io/name: zyvor-fleet}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: zyvor-fleet}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+        fsGroup: 65532
+      containers:
+        - name: control-plane
+          image: ghcr.io/zyvorai/zyvor-fleet:0.2.0
+          args: ["--listen", ":8080", "--data", "/var/lib/zyvor-fleet/state.json"]
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: ZYVOR_FLEET_ADMIN_EMAIL, value: admin@zyvor.local}
+            - name: ZYVOR_FLEET_ADMIN_PASSWORD
+              valueFrom: {secretKeyRef: {name: zyvor-fleet-secrets, key: admin-password}}
+            - name: ZYVOR_FLEET_SESSION_SECRET
+              valueFrom: {secretKeyRef: {name: zyvor-fleet-secrets, key: session-secret}}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/zyvor-fleet}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: "1", memory: 512Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: zyvor-fleet-data}

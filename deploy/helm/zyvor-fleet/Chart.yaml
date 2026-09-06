@@ -1,0 +1,9 @@
+apiVersion: v2
+name: zyvor-fleet
+description: Offline-first edge fleet control plane by Zyvor
+version: 0.2.0
+appVersion: "0.2.0"
+type: application
+home: https://zyvor.dev
+sources:
+  - https://github.com/zyvorai/zyvor-fleet

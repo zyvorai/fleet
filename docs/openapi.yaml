@@ -1,0 +1,1111 @@
+openapi: 3.1.0
+info:
+  title: Zyvor Fleet API
+  version: 0.2.0
+  description: Offline-first edge fleet control-plane API with dynamic targeting, health-gated staged rollouts and rollback
+    safety.
+servers:
+- url: /
+tags:
+- name: Auth
+- name: Fleet
+- name: Desired state
+- name: Administration
+- name: Agent
+paths:
+  /healthz:
+    get:
+      operationId: health
+      responses:
+        '200':
+          description: Healthy
+  /readyz:
+    get:
+      operationId: ready
+      responses:
+        '200':
+          description: Ready
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Signed in. Sets HttpOnly session cookie.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Error'
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - Auth
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Signed out
+  /api/v1/auth/me:
+    get:
+      tags:
+      - Auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /api/v1/dashboard:
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Fleet summary
+  /api/v1/sites:
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Site'
+  /api/v1/sites/{id}:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Site
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+        '404':
+          $ref: '#/components/responses/Error'
+    delete:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Site removed
+    patch:
+      tags:
+      - Fleet
+      security: &id001
+      - cookieAuth: []
+      parameters: &id002
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                region:
+                  type: string
+                labels:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        '200':
+          description: Site metadata updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+        '404': &id003
+          $ref: '#/components/responses/Error'
+  /api/v1/users:
+    get:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                password:
+                  type: string
+                  minLength: 10
+                role:
+                  $ref: '#/components/schemas/Role'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /api/v1/users/{id}:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    patch:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                password:
+                  type: string
+                  minLength: 10
+                role:
+                  $ref: '#/components/schemas/Role'
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: User removed
+  /api/v1/enrollment-tokens:
+    get:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Enrollment token metadata; plaintext is never listed
+    post:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                expiresHours:
+                  type: integer
+                  minimum: 0
+                maxUses:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+      responses:
+        '201':
+          description: Enrollment token. `token` is returned only here.
+  /api/v1/enrollment-tokens/{id}:
+    delete:
+      tags:
+      - Administration
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Token revoked
+  /api/v1/revisions:
+    get:
+      tags:
+      - Desired state
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Revisions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Revision'
+    post:
+      tags:
+      - Desired state
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - workloads
+              properties:
+                name:
+                  type: string
+                notes:
+                  type: string
+                workloads:
+                  type: array
+                  maxItems: 100
+                  items:
+                    $ref: '#/components/schemas/RuntimeSpec'
+      responses:
+        '201':
+          description: Revision created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+  /api/v1/rollouts:
+    get:
+      tags:
+      - Desired state
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Rollouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rollout'
+    post:
+      tags:
+      - Desired state
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &id004
+              type: object
+              required:
+              - revisionId
+              properties:
+                name:
+                  type: string
+                revisionId:
+                  type: string
+                strategy:
+                  type: string
+                  enum:
+                  - waves
+                  - all-at-once
+                waveSize:
+                  type: integer
+                  minimum: 1
+                pauseSeconds:
+                  type: integer
+                  minimum: 0
+                  maximum: 86400
+                maxFailures:
+                  type: integer
+                  minimum: 0
+                siteIds:
+                  type: array
+                  items:
+                    type: string
+                groupId:
+                  type: string
+                selector:
+                  type: object
+                  additionalProperties:
+                    type: string
+                autoRollback:
+                  type: boolean
+                approvalRequired:
+                  type: boolean
+                startAt:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
+                endAt:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
+      responses:
+        '201':
+          description: Rollout started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+  /api/v1/events:
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+      responses:
+        '200':
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /api/v1/integrations:
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Supported Zyvor integration boundaries
+  /api/v1/agent/register:
+    post:
+      tags:
+      - Agent
+      security:
+      - bearerAuth: []
+      description: Exchange an enrollment token for an independent site identity.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - inventory
+              properties:
+                name:
+                  type: string
+                region:
+                  type: string
+                labels:
+                  type: object
+                  additionalProperties:
+                    type: string
+                agentVersion:
+                  type: string
+                inventory:
+                  $ref: '#/components/schemas/Inventory'
+      responses:
+        '201':
+          description: Site identity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  siteId:
+                    type: string
+                  agentToken:
+                    type: string
+                  heartbeatSeconds:
+                    type: integer
+  /api/v1/agent/sync:
+    get:
+      tags:
+      - Agent
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SiteIDHeader'
+      responses:
+        '200':
+          description: Desired revision and typed commands
+  /api/v1/agent/heartbeat:
+    post:
+      tags:
+      - Agent
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SiteIDHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inventory:
+                  $ref: '#/components/schemas/Inventory'
+                agentVersion:
+                  type: string
+                appliedRevision:
+                  type: string
+                queuedEvents:
+                  type: integer
+                autonomyMode:
+                  type: boolean
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Event'
+                failedRevision:
+                  type: string
+                revisionError:
+                  type: string
+                workloadHealth:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkloadHealth'
+      responses:
+        '200':
+          description: Heartbeat accepted
+  /api/v1/agent/ack:
+    post:
+      tags:
+      - Agent
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SiteIDHeader'
+      responses:
+        '200':
+          description: Command acknowledgement accepted
+  /metrics:
+    get:
+      operationId: metrics
+      description: Prometheus-format fleet metrics.
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/v1/site-groups:
+    get:
+      tags:
+      - Fleet
+      security: *id001
+      responses:
+        '200':
+          description: Dynamic and pinned site groups
+    post:
+      tags:
+      - Fleet
+      security: *id001
+      parameters: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                selector:
+                  type: object
+                  additionalProperties:
+                    type: string
+                siteIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Site group created
+        '400': *id003
+  /api/v1/site-groups/{id}:
+    delete:
+      tags:
+      - Fleet
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Site group removed
+        '404': *id003
+  /api/v1/rollouts/plan:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: *id004
+      responses:
+        '200':
+          description: Resolved rollout targets, offline count and wave estimate
+        '400': *id003
+  /api/v1/rollouts/{id}/pause:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout pause transition applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+  /api/v1/rollouts/{id}/resume:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout resume transition applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+  /api/v1/rollouts/{id}/abort:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout abort transition applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+  /api/v1/rollouts/{id}/rollback:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout rollback transition applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+  /api/v1/rollouts/{id}/retry:
+    post:
+      tags:
+      - Desired state
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout retry transition applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+  /api/v1/rollouts/{id}/approve:
+    post:
+      tags:
+      - Desired state
+      description: Admin approval gate.
+      security: *id001
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '200':
+          description: Rollout approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '400': *id003
+        '404': *id003
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: zyvor_fleet_session
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    ID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    SiteIDHeader:
+      name: X-Zyvor-Site-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    ZyvorRequest:
+      name: X-Zyvor-Request
+      in: header
+      required: true
+      schema:
+        type: string
+        const: '1'
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              status:
+                type: integer
+  schemas:
+    Role:
+      type: string
+      enum:
+      - admin
+      - operator
+      - viewer
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+    Inventory:
+      type: object
+      properties:
+        hostname:
+          type: string
+        os:
+          type: string
+        arch:
+          type: string
+        kernel:
+          type: string
+        cpuCount:
+          type: integer
+        memoryBytes:
+          type: integer
+        runtimes:
+          type: array
+          items:
+            type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        addresses:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+    Site:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        region:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        status:
+          type: string
+          enum:
+          - online
+          - degraded
+          - offline
+        lastSeen:
+          type: string
+          format: date-time
+        agentVersion:
+          type: string
+        inventory:
+          $ref: '#/components/schemas/Inventory'
+        desiredRevision:
+          type: string
+        appliedRevision:
+          type: string
+        queuedEvents:
+          type: integer
+        autonomyMode:
+          type: boolean
+        failedRevision:
+          type: string
+        revisionError:
+          type: string
+        workloadHealth:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkloadHealth'
+    RuntimeSpec:
+      type: object
+      required:
+      - kind
+      - name
+      - state
+      properties:
+        kind:
+          type: string
+          enum:
+          - systemd
+          - container
+          - k3s
+          - qemu
+        name:
+          type: string
+        state:
+          type: string
+          enum:
+          - running
+          - stopped
+          - present
+        image:
+          type: string
+        args:
+          type: array
+          items:
+            type: string
+        env:
+          type: object
+          additionalProperties:
+            type: string
+        ports:
+          type: array
+          items:
+            type: string
+        cpus:
+          type: integer
+        memoryMiB:
+          type: integer
+        disk:
+          type: string
+        manifest:
+          type: string
+        health:
+          $ref: '#/components/schemas/HealthProbe'
+    Revision:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        workloads:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeSpec'
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+    Rollout:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        revisionId:
+          type: string
+        status:
+          type: string
+          enum:
+          - pending_approval
+          - scheduled
+          - running
+          - paused
+          - completed
+          - completed_with_failures
+          - failed
+          - aborted
+          - rolled_back
+          - expired
+        strategy:
+          type: string
+        waveSize:
+          type: integer
+        pauseSeconds:
+          type: integer
+        maxFailures:
+          type: integer
+        autoRollback:
+          type: boolean
+        approvalRequired:
+          type: boolean
+        approvedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        startAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        endAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        nextWaveAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        currentWave:
+          type: integer
+        siteIds:
+          type: array
+          items:
+            type: string
+        activatedSites:
+          type: array
+          items:
+            type: string
+        completedSites:
+          type: array
+          items:
+            type: string
+        failedSites:
+          type: array
+          items:
+            type: string
+        previousRevisions:
+          type: object
+          additionalProperties:
+            type: string
+        rolledBack:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        createdBy:
+          type: string
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        siteId:
+          type: string
+        kind:
+          type: string
+        severity:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+    HealthProbe:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - runtime
+          - http
+          - tcp
+        url:
+          type: string
+        address:
+          type: string
+        timeoutSeconds:
+          type: integer
+          minimum: 0
+          maximum: 30
+        graceSeconds:
+          type: integer
+          minimum: 0
+          maximum: 300
+        expectedStatus:
+          type: integer
+          minimum: 100
+          maximum: 599
+    WorkloadHealth:
+      type: object
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+        healthy:
+          type: boolean
+        message:
+          type: string
+        checkedAt:
+          type: string
+          format: date-time
+    SiteGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        selector:
+          type: object
+          additionalProperties:
+            type: string
+        siteIds:
+          type: array
+          items:
+            type: string
+        resolvedSiteIds:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
