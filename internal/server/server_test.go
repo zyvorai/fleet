@@ -209,6 +209,122 @@ func TestAgentEnrollmentRevisionAndWaveRollout(t *testing.T) {
 	}
 }
 
+// TestSiteCommandsCreateSyncAck exercises the ad-hoc command path end to
+// end: an admin queues a command, the agent picks it up via sync (and only
+// while pending), acks it, and the ack is reflected back through the list
+// endpoint. This subsystem previously had every piece except a way to
+// actually create a Command, so nothing ever reached an agent.
+func TestSiteCommandsCreateSyncAck(t *testing.T) {
+	e := newTestEnv(t)
+	defer e.close()
+	code, b := e.req("POST", "/api/v1/auth/login", map[string]string{"email": "admin@example.test", "password": "test-admin-password"}, false)
+	if code != 200 {
+		t.Fatalf("login %d: %s", code, b)
+	}
+
+	registerBody, _ := json.Marshal(map[string]any{"name": "site-cmd", "region": "lab", "agentVersion": "test", "inventory": map[string]any{"hostname": "site-cmd", "os": "linux", "arch": "amd64", "cpuCount": 4}})
+	req, _ := http.NewRequest("POST", e.server.URL+"/api/v1/agent/register", bytes.NewReader(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+e.enrollment)
+	resp, err := e.client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var regBuf bytes.Buffer
+	_, _ = regBuf.ReadFrom(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != 201 {
+		t.Fatalf("register %d: %s", resp.StatusCode, regBuf.String())
+	}
+	reg := decode[struct {
+		SiteID     string `json:"siteId"`
+		AgentToken string `json:"agentToken"`
+	}](t, regBuf.Bytes())
+
+	// Unsupported type is rejected.
+	code, b = e.req("POST", "/api/v1/sites/"+reg.SiteID+"/commands", map[string]string{"type": "reboot"}, true)
+	if code != 400 {
+		t.Fatalf("expected 400 for unsupported command type, got %d: %s", code, b)
+	}
+	// Unknown site is rejected.
+	code, b = e.req("POST", "/api/v1/sites/does-not-exist/commands", map[string]string{"type": "agent.ping"}, true)
+	if code != 404 {
+		t.Fatalf("expected 404 for unknown site, got %d: %s", code, b)
+	}
+
+	code, b = e.req("POST", "/api/v1/sites/"+reg.SiteID+"/commands", map[string]string{"type": "agent.ping"}, true)
+	if code != 201 {
+		t.Fatalf("create command %d: %s", code, b)
+	}
+	cmd := decode[model.Command](t, b)
+	if cmd.Status != "pending" {
+		t.Fatalf("expected new command to be pending, got %q", cmd.Status)
+	}
+
+	// The agent should see it as a pending command on its next sync.
+	syncReq, _ := http.NewRequest("GET", e.server.URL+"/api/v1/agent/sync", nil)
+	syncReq.Header.Set("Authorization", "Bearer "+reg.AgentToken)
+	syncReq.Header.Set("X-Zyvor-Site-ID", reg.SiteID)
+	syncResp, err := e.client.Do(syncReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var syncOut struct {
+		Commands []model.Command `json:"commands"`
+	}
+	if err := json.NewDecoder(syncResp.Body).Decode(&syncOut); err != nil {
+		t.Fatal(err)
+	}
+	syncResp.Body.Close()
+	if len(syncOut.Commands) != 1 || syncOut.Commands[0].ID != cmd.ID {
+		t.Fatalf("expected the pending command in sync response, got %+v", syncOut.Commands)
+	}
+
+	// Agent acks it as completed.
+	ackBody, _ := json.Marshal(map[string]string{"commandId": cmd.ID, "status": "completed"})
+	ackReq, _ := http.NewRequest("POST", e.server.URL+"/api/v1/agent/ack", bytes.NewReader(ackBody))
+	ackReq.Header.Set("Content-Type", "application/json")
+	ackReq.Header.Set("Authorization", "Bearer "+reg.AgentToken)
+	ackReq.Header.Set("X-Zyvor-Site-ID", reg.SiteID)
+	ackResp, err := e.client.Do(ackReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ackResp.Body.Close()
+	if ackResp.StatusCode != 200 {
+		t.Fatalf("ack status %d", ackResp.StatusCode)
+	}
+
+	// Once acked, it must not be resent as pending...
+	syncReq2, _ := http.NewRequest("GET", e.server.URL+"/api/v1/agent/sync", nil)
+	syncReq2.Header.Set("Authorization", "Bearer "+reg.AgentToken)
+	syncReq2.Header.Set("X-Zyvor-Site-ID", reg.SiteID)
+	syncResp2, err := e.client.Do(syncReq2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var syncOut2 struct {
+		Commands []model.Command `json:"commands"`
+	}
+	if err := json.NewDecoder(syncResp2.Body).Decode(&syncOut2); err != nil {
+		t.Fatal(err)
+	}
+	syncResp2.Body.Close()
+	if len(syncOut2.Commands) != 0 {
+		t.Fatalf("expected no pending commands after ack, got %+v", syncOut2.Commands)
+	}
+
+	// ...but it should show up as completed via the list endpoint.
+	code, b = e.req("GET", "/api/v1/sites/"+reg.SiteID+"/commands", nil, false)
+	if code != 200 {
+		t.Fatalf("list commands %d: %s", code, b)
+	}
+	listed := decode[[]model.Command](t, b)
+	if len(listed) != 1 || listed[0].Status != "completed" {
+		t.Fatalf("expected 1 completed command, got %+v", listed)
+	}
+}
+
 func TestMutatingCookieAPIRequiresSameOriginMarker(t *testing.T) {
 	e := newTestEnv(t)
 	defer e.close()

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- `POST /api/v1/sites/{id}/commands` and `GET /api/v1/sites/{id}/commands`:
+  wired up the previously-dead ad-hoc command subsystem. The agent-side
+  handling for `inventory.refresh` and `agent.ping` (sync delivery, ack)
+  already existed with no way to actually create one; now an admin or
+  operator can trigger either from a site's detail drawer ("Ping agent" /
+  "Refresh inventory" under a new Diagnostics section), see the result
+  once the agent acks it, and `state.Commands` is capped at 500 entries.
+
 ### Web console
 
 - Full visual redesign of the embedded web console: light theme by default,

@@ -69,6 +69,8 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /api/v1/sites/{id}", s.requireAuth(http.HandlerFunc(s.getSite)))
 	mux.Handle("PATCH /api/v1/sites/{id}", s.requireRoles(http.HandlerFunc(s.updateSite), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("DELETE /api/v1/sites/{id}", s.requireRoles(http.HandlerFunc(s.deleteSite), model.RoleAdmin))
+	mux.Handle("GET /api/v1/sites/{id}/commands", s.requireAuth(http.HandlerFunc(s.listSiteCommands)))
+	mux.Handle("POST /api/v1/sites/{id}/commands", s.requireRoles(http.HandlerFunc(s.createSiteCommand), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("GET /api/v1/site-groups", s.requireAuth(http.HandlerFunc(s.listSiteGroups)))
 	mux.Handle("POST /api/v1/site-groups", s.requireRoles(http.HandlerFunc(s.createSiteGroup), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("DELETE /api/v1/site-groups/{id}", s.requireRoles(http.HandlerFunc(s.deleteSiteGroup), model.RoleAdmin, model.RoleOperator))
@@ -613,6 +615,69 @@ func (s *Server) deleteSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
+}
+
+var allowedSiteCommands = map[string]bool{"inventory.refresh": true, "agent.ping": true}
+
+// maxStoredCommands bounds state.Commands the same way PendingEvents is
+// bounded on the agent side: commands are admin/operator-triggered so growth
+// is naturally slow, but an unattended control plane still shouldn't
+// accumulate them forever.
+const maxStoredCommands = 500
+
+func (s *Server) listSiteCommands(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	st := s.store.Snapshot()
+	out := make([]model.Command, 0, 20)
+	for i := len(st.Commands) - 1; i >= 0 && len(out) < 20; i-- {
+		if st.Commands[i].SiteID == id {
+			out = append(out, st.Commands[i])
+		}
+	}
+	writeJSON(w, 200, out)
+}
+
+func (s *Server) createSiteCommand(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var in struct {
+		Type string `json:"type"`
+	}
+	if err := decodeJSON(r, &in, 4<<10); err != nil {
+		writeError(w, 400, err.Error())
+		return
+	}
+	if !allowedSiteCommands[in.Type] {
+		writeError(w, 400, "unsupported command type")
+		return
+	}
+	found := false
+	now := time.Now().UTC()
+	cmd := model.Command{ID: newID("cmd"), SiteID: id, Type: in.Type, Status: "pending", CreatedAt: now, UpdatedAt: now}
+	err := s.store.Update(func(st *model.State) error {
+		for _, site := range st.Sites {
+			if site.ID == id {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return errors.New("site not found")
+		}
+		st.Commands = append(st.Commands, cmd)
+		if len(st.Commands) > maxStoredCommands {
+			st.Commands = st.Commands[len(st.Commands)-maxStoredCommands:]
+		}
+		return nil
+	})
+	if err != nil {
+		status := 500
+		if !found {
+			status = 404
+		}
+		writeError(w, status, err.Error())
+		return
+	}
+	writeJSON(w, 201, cmd)
 }
 
 func (s *Server) listEnrollmentTokens(w http.ResponseWriter, _ *http.Request) {

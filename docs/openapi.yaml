@@ -160,6 +160,54 @@ paths:
                 $ref: '#/components/schemas/Site'
         '404': &id003
           $ref: '#/components/responses/Error'
+  /api/v1/sites/{id}/commands:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    get:
+      tags:
+      - Fleet
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Most recent commands for this site, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Command'
+    post:
+      tags:
+      - Administration
+      description: Queue an ad-hoc command for a site's agent to pick up on its next sync.
+      security: *id001
+      parameters: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - type
+              properties:
+                type:
+                  type: string
+                  enum:
+                  - inventory.refresh
+                  - agent.ping
+      responses:
+        '201':
+          description: Command queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Command'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
   /api/v1/users:
     get:
       tags:
@@ -1042,6 +1090,32 @@ components:
           additionalProperties:
             type: string
         createdAt:
+          type: string
+          format: date-time
+    Command:
+      type: object
+      properties:
+        id:
+          type: string
+        siteId:
+          type: string
+        type:
+          type: string
+          enum:
+          - inventory.refresh
+          - agent.ping
+        status:
+          type: string
+          enum:
+          - pending
+          - completed
+          - failed
+        error:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
     HealthProbe:
