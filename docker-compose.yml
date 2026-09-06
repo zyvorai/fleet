@@ -20,6 +20,11 @@ services:
     image: zyvor-fleet:local
     entrypoint: ["/usr/local/bin/fleet-agent"]
     command: ["--server", "http://control-plane:8080", "--name", "factory-pune-01", "--region", "india-west", "--enrollment-token", "zf_enroll_demo-local-only", "--state", "/state/agent.json", "--labels", "class=factory,tier=production"]
+    environment:
+      # The default k3s manifest dir (/var/lib/rancher/...) isn't writable by
+      # this container's non-root user; point it at the already-writable
+      # state volume so a k3s-kind workload can actually reconcile in this demo.
+      ZYVOR_FLEET_K3S_MANIFEST_DIR: /state/k3s-manifests
     depends_on:
       control-plane:
         condition: service_healthy
@@ -30,6 +35,8 @@ services:
     image: zyvor-fleet:local
     entrypoint: ["/usr/local/bin/fleet-agent"]
     command: ["--server", "http://control-plane:8080", "--name", "retail-delhi-07", "--region", "india-north", "--enrollment-token", "zf_enroll_demo-local-only", "--state", "/state/agent.json", "--labels", "class=retail,tier=production"]
+    environment:
+      ZYVOR_FLEET_K3S_MANIFEST_DIR: /state/k3s-manifests
     depends_on:
       control-plane:
         condition: service_healthy

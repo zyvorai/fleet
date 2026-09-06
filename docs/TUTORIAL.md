@@ -93,20 +93,28 @@ one or more workloads, each with a `kind`:
 | `k3s` | maintain a manifest in the k3s manifests directory |
 | `qemu` | start/stop a basic KVM/QEMU VM (opt-in, disabled by default) |
 
+The README's [desired-state example](../README.md#desired-state-example)
+mixes `systemd` and `container` workloads — real for a Linux edge host
+with `systemctl` and Docker/Podman installed, but the demo agents here
+don't have either (the container image is intentionally minimal). `k3s`
+is the one kind that only needs filesystem access, so it's what will
+actually reconcile to `applied` in this demo without any extra setup.
+`docker-compose.yml` already points `ZYVOR_FLEET_K3S_MANIFEST_DIR` at a
+writable path for you; if you're running agents locally instead of via
+Compose, export that same variable to a writable directory before
+starting `fleet-agent` (the default, `/var/lib/rancher/k3s/server/manifests`,
+needs root).
+
 Go to **Rollouts → New revision**. Give it a name like `Demo stack 2026.09`
-and paste this into Workloads (JSON) — it's the same example from the
-README, one systemd unit and one container:
+and paste this into Workloads (JSON):
 
 ```json
 [
-  {"kind": "systemd", "name": "chronyd", "state": "running"},
   {
-    "kind": "container",
-    "name": "edge-api",
+    "kind": "k3s",
+    "name": "hello",
     "state": "running",
-    "image": "ghcr.io/example/edge-api:1.4.0",
-    "ports": ["8081:8080"],
-    "health": {"type": "http", "url": "http://127.0.0.1:8081/healthz", "expectedStatus": 200, "timeoutSeconds": 5, "graceSeconds": 20}
+    "manifest": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: hello\ndata:\n  greeting: hello-from-fleet\n"
   }
 ]
 ```
@@ -166,9 +174,10 @@ docker compose stop edge-a
 lapses. It doesn't roll back or drop its workloads — the agent cached the
 full revision body locally, and a typed adapter keeps reconciling it
 against that cache every cycle with no control-plane round trip required.
-If you `docker exec` into a real (non-demo) edge host and kill the
-`edge-api` container by hand, the agent will restart it on its own within
-one reconciliation interval, control plane or no control plane.
+On a real Linux edge host running a `container`-kind workload, this is
+what keeps a crashed container restarted even with the WAN down: delete
+the container by hand and the agent puts it back within one reconciliation
+interval, control plane or no control plane.
 
 Bring it back:
 
