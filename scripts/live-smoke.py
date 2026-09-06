@@ -1,3 +1,6 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: Apache-2.0
+
 import os, sys, json, time, socket, shutil, signal, subprocess, tempfile, urllib.request, urllib.error, http.cookiejar
 from pathlib import Path
 

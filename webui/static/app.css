@@ -1,3 +1,6 @@
+/* Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+ * SPDX-License-Identifier: Apache-2.0 */
+
 :root{
   --bg:#ffffff;--panel:#ffffff;--panel-2:#f5f5f7;--panel-3:#ececee;--ink:#18181b;--muted:#6e6e76;--soft:#86868b;
   --line:rgba(0,0,0,.08);--line-strong:rgba(0,0,0,.14);--orange:#ff5a15;--orange-2:#ff7a3d;--amber:#bf7a00;

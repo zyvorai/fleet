@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: Apache-2.0
 set -eu
 if [ "$(id -u)" -ne 0 ]; then echo "run as root" >&2; exit 1; fi
 BIN="${1:-./bin/fleet-agent}"
