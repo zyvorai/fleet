@@ -77,6 +77,9 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /api/v1/enrollment-tokens", s.requireRoles(http.HandlerFunc(s.listEnrollmentTokens), model.RoleAdmin))
 	mux.Handle("POST /api/v1/enrollment-tokens", s.requireRoles(http.HandlerFunc(s.createEnrollmentToken), model.RoleAdmin))
 	mux.Handle("DELETE /api/v1/enrollment-tokens/{id}", s.requireRoles(http.HandlerFunc(s.deleteEnrollmentToken), model.RoleAdmin))
+	mux.Handle("GET /api/v1/api-tokens", s.requireRoles(http.HandlerFunc(s.listAPITokens), model.RoleAdmin))
+	mux.Handle("POST /api/v1/api-tokens", s.requireRoles(http.HandlerFunc(s.createAPIToken), model.RoleAdmin))
+	mux.Handle("DELETE /api/v1/api-tokens/{id}", s.requireRoles(http.HandlerFunc(s.deleteAPIToken), model.RoleAdmin))
 	mux.Handle("GET /api/v1/revisions", s.requireAuth(http.HandlerFunc(s.listRevisions)))
 	mux.Handle("POST /api/v1/revisions", s.requireRoles(http.HandlerFunc(s.createRevision), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("GET /api/v1/rollouts", s.requireAuth(http.HandlerFunc(s.listRollouts)))
@@ -89,6 +92,11 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /api/v1/rollouts/{id}/rollback", s.requireRoles(http.HandlerFunc(s.rollbackRollout), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("POST /api/v1/rollouts/{id}/retry", s.requireRoles(http.HandlerFunc(s.retryRollout), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("GET /api/v1/events", s.requireAuth(http.HandlerFunc(s.listEvents)))
+	mux.Handle("GET /api/v1/audit", s.requireRoles(http.HandlerFunc(s.listAudit), model.RoleAdmin))
+	mux.Handle("GET /api/v1/webhooks", s.requireRoles(http.HandlerFunc(s.listWebhooks), model.RoleAdmin))
+	mux.Handle("POST /api/v1/webhooks", s.requireRoles(http.HandlerFunc(s.createWebhook), model.RoleAdmin))
+	mux.Handle("DELETE /api/v1/webhooks/{id}", s.requireRoles(http.HandlerFunc(s.deleteWebhook), model.RoleAdmin))
+	mux.Handle("POST /api/v1/webhooks/{id}/test", s.requireRoles(http.HandlerFunc(s.testWebhook), model.RoleAdmin))
 	mux.HandleFunc("POST /api/v1/agent/register", s.agentRegister)
 	mux.HandleFunc("POST /api/v1/agent/heartbeat", s.agentHeartbeat)
 	mux.HandleFunc("GET /api/v1/agent/sync", s.agentSync)
@@ -96,7 +104,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /api/v1/integrations", s.requireAuth(http.HandlerFunc(s.integrations)))
 	mux.Handle("PATCH /api/v1/integrations/{id}", s.requireRoles(http.HandlerFunc(s.updateIntegration), model.RoleAdmin))
 	mux.Handle("/", webui.Handler())
-	return s.securityHeaders(s.accessLog(mux))
+	return s.securityHeaders(s.accessLog(s.auditMutations(mux)))
 }
 
 func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
@@ -420,9 +428,11 @@ func (s *Server) getSite(w http.ResponseWriter, r *http.Request) {
 func (s *Server) updateSite(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	var in struct {
-		Name   *string           `json:"name"`
-		Region *string           `json:"region"`
-		Labels map[string]string `json:"labels"`
+		Name              *string           `json:"name"`
+		Region            *string           `json:"region"`
+		Labels            map[string]string `json:"labels"`
+		Maintenance       *bool             `json:"maintenance"`
+		MaintenanceReason *string           `json:"maintenanceReason"`
 	}
 	if err := decodeJSON(r, &in, 64<<10); err != nil {
 		writeError(w, 400, err.Error())
@@ -433,6 +443,11 @@ func (s *Server) updateSite(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, err.Error())
 		return
 	}
+	if in.MaintenanceReason != nil && len(strings.TrimSpace(*in.MaintenanceReason)) > 240 {
+		writeError(w, 400, "maintenanceReason must be at most 240 characters")
+		return
+	}
+	actor := claimsFrom(r.Context())
 	var updated model.SiteView
 	found := false
 	err = s.store.Update(func(st *model.State) error {
@@ -459,8 +474,30 @@ func (s *Server) updateSite(w http.ResponseWriter, r *http.Request) {
 			if in.Labels != nil {
 				st.Sites[i].Labels = labels
 			}
+			maintenanceChanged := false
+			if in.MaintenanceReason != nil {
+				st.Sites[i].MaintenanceReason = strings.TrimSpace(*in.MaintenanceReason)
+			}
+			if in.Maintenance != nil {
+				maintenanceChanged = st.Sites[i].Maintenance != *in.Maintenance
+				st.Sites[i].Maintenance = *in.Maintenance
+				if !*in.Maintenance {
+					st.Sites[i].MaintenanceReason = ""
+				}
+			}
 			updated = st.Sites[i].View()
-			st.Events = appendEvent(st.Events, model.Event{ID: newID("evt"), SiteID: id, Kind: "site.updated", Severity: "info", Message: st.Sites[i].Name + " metadata updated", CreatedAt: time.Now().UTC()})
+			kind := "site.updated"
+			message := st.Sites[i].Name + " metadata updated"
+			if maintenanceChanged {
+				if st.Sites[i].Maintenance {
+					kind = "site.maintenance.enabled"
+					message = st.Sites[i].Name + " entered maintenance mode"
+				} else {
+					kind = "site.maintenance.disabled"
+					message = st.Sites[i].Name + " left maintenance mode"
+				}
+			}
+			st.Events = appendEvent(st.Events, model.Event{ID: newID("evt"), SiteID: id, Kind: kind, Severity: "info", Message: message, Details: map[string]string{"actor": actor.Email}, CreatedAt: time.Now().UTC()})
 			break
 		}
 		if !found {
@@ -864,19 +901,20 @@ func (s *Server) listRollouts(w http.ResponseWriter, _ *http.Request) {
 }
 
 type rolloutRequest struct {
-	Name             string            `json:"name"`
-	RevisionID       string            `json:"revisionId"`
-	Strategy         string            `json:"strategy"`
-	WaveSize         int               `json:"waveSize"`
-	PauseSeconds     int               `json:"pauseSeconds"`
-	MaxFailures      int               `json:"maxFailures"`
-	SiteIDs          []string          `json:"siteIds"`
-	GroupID          string            `json:"groupId"`
-	Selector         map[string]string `json:"selector"`
-	AutoRollback     bool              `json:"autoRollback"`
-	ApprovalRequired bool              `json:"approvalRequired"`
-	StartAt          *time.Time        `json:"startAt"`
-	EndAt            *time.Time        `json:"endAt"`
+	Name               string            `json:"name"`
+	RevisionID         string            `json:"revisionId"`
+	Strategy           string            `json:"strategy"`
+	WaveSize           int               `json:"waveSize"`
+	PauseSeconds       int               `json:"pauseSeconds"`
+	MaxFailures        int               `json:"maxFailures"`
+	SiteIDs            []string          `json:"siteIds"`
+	GroupID            string            `json:"groupId"`
+	Selector           map[string]string `json:"selector"`
+	AutoRollback       bool              `json:"autoRollback"`
+	ApprovalRequired   bool              `json:"approvalRequired"`
+	StartAt            *time.Time        `json:"startAt"`
+	EndAt              *time.Time        `json:"endAt"`
+	IncludeMaintenance bool              `json:"includeMaintenance"`
 }
 
 func (s *Server) planRollout(w http.ResponseWriter, r *http.Request) {
@@ -895,10 +933,25 @@ func (s *Server) planRollout(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, err.Error())
 		return
 	}
-	targets, err := resolveRolloutSites(st, in.SiteIDs, in.GroupID, selector)
+	allTargets, err := resolveRolloutSitesWithMaintenance(st, in.SiteIDs, in.GroupID, selector, true)
 	if err != nil {
 		writeError(w, 400, err.Error())
 		return
+	}
+	targets, err := resolveRolloutSitesWithMaintenance(st, in.SiteIDs, in.GroupID, selector, in.IncludeMaintenance)
+	if err != nil {
+		writeError(w, 400, err.Error())
+		return
+	}
+	targetSet := map[string]bool{}
+	for _, id := range targets {
+		targetSet[id] = true
+	}
+	maintenanceExcluded := []string{}
+	for _, id := range allTargets {
+		if !targetSet[id] {
+			maintenanceExcluded = append(maintenanceExcluded, id)
+		}
 	}
 	type target struct {
 		ID, Name, Region, Status string
@@ -928,7 +981,7 @@ func (s *Server) planRollout(w http.ResponseWriter, r *http.Request) {
 	if waveSize > 0 {
 		waves = (len(targets) + waveSize - 1) / waveSize
 	}
-	writeJSON(w, 200, map[string]any{"siteIds": targets, "targets": out, "total": len(targets), "offline": offline, "waveSize": waveSize, "waves": waves})
+	writeJSON(w, 200, map[string]any{"siteIds": targets, "targets": out, "total": len(targets), "offline": offline, "maintenanceExcluded": maintenanceExcluded, "waveSize": waveSize, "waves": waves})
 }
 
 func (s *Server) createRollout(w http.ResponseWriter, r *http.Request) {
@@ -954,7 +1007,7 @@ func (s *Server) createRollout(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, err.Error())
 		return
 	}
-	targets, err := resolveRolloutSites(st, in.SiteIDs, in.GroupID, selector)
+	targets, err := resolveRolloutSitesWithMaintenance(st, in.SiteIDs, in.GroupID, selector, in.IncludeMaintenance)
 	if err != nil {
 		writeError(w, 400, err.Error())
 		return
@@ -1716,6 +1769,10 @@ func revisionExists(st model.State, id string) bool {
 }
 
 func resolveRolloutSites(st model.State, explicit []string, groupID string, selector map[string]string) ([]string, error) {
+	return resolveRolloutSitesWithMaintenance(st, explicit, groupID, selector, false)
+}
+
+func resolveRolloutSitesWithMaintenance(st model.State, explicit []string, groupID string, selector map[string]string, includeMaintenance bool) ([]string, error) {
 	valid := map[string]bool{}
 	for _, site := range st.Sites {
 		valid[site.ID] = true
@@ -1759,7 +1816,7 @@ func resolveRolloutSites(st model.State, explicit []string, groupID string, sele
 		set[id] = true
 	}
 	for _, site := range st.Sites {
-		if set[site.ID] {
+		if set[site.ID] && (includeMaintenance || !site.Maintenance) {
 			ordered = append(ordered, site.ID)
 		}
 	}
@@ -1825,6 +1882,31 @@ func normalizeLabels(in map[string]string) (map[string]string, error) {
 func (s *Server) requireAuth(next http.Handler) http.Handler { return s.requireRoles(next) }
 func (s *Server) requireRoles(next http.Handler, roles ...model.Role) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if plain := bearer(r); strings.HasPrefix(plain, "zf_api_") {
+			claims, token, err := s.authenticateAPIToken(plain)
+			if err != nil || token == nil {
+				writeError(w, 401, "invalid API token")
+				return
+			}
+			if len(roles) > 0 {
+				allowed := false
+				for _, role := range roles {
+					if claims.Role == role {
+						allowed = true
+					}
+				}
+				if !allowed {
+					writeError(w, 403, "insufficient role")
+					return
+				}
+			}
+			if !apiTokenAllows(*token, r) {
+				writeError(w, 403, "API token scope does not allow this operation")
+				return
+			}
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), claimsKey, claims)))
+			return
+		}
 		cookie, err := r.Cookie("zyvor_fleet_session")
 		if err != nil {
 			writeError(w, 401, "sign in required")
@@ -1886,6 +1968,9 @@ func (s *Server) accessLog(next http.Handler) http.Handler {
 		start := time.Now()
 		next.ServeHTTP(w, r)
 		if strings.HasPrefix(r.URL.Path, "/api/") {
+			if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Method != http.MethodOptions {
+				go s.dispatchPendingWebhooks()
+			}
 			s.cfg.Logger.Debug("http request", "method", r.Method, "path", r.URL.Path, "duration", time.Since(start).String())
 		}
 	})

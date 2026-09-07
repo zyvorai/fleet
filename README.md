@@ -63,6 +63,9 @@ Fleet intentionally does **not** reimplement Nodra's device/event data plane or 
 - Signed, HttpOnly, SameSite session cookies and role-based API authorization.
 - One-time/restricted enrollment tokens exchanged for independent per-site identities.
 - Live fleet inventory: OS, architecture, CPU, memory, addresses, detected runtimes and capabilities.
+- Site maintenance/cordon mode that excludes serviced sites from new rollouts by default.
+- Scoped bearer API tokens for CI/GitOps automation without shared human credentials.
+- Signed outgoing webhooks with durable cursors plus a bounded operator/API mutation audit trail.
 - Automatic online/degraded/offline state, per-workload health and operational event stream.
 - Declarative revisions with typed workload specs.
 - Dynamic label-based site groups and pre-flight rollout plans.
@@ -161,6 +164,10 @@ fleetctl groups
 fleetctl group-create "Production" env=production,class=factory
 fleetctl rollout-plan GROUP_ID
 fleetctl rollout-pause ROLLOUT_ID
+fleetctl site-maintenance SITE_ID on "scheduled service"
+fleetctl api-token-create github-ci operator read,rollouts:write
+fleetctl audit
+fleetctl webhooks
 fleetctl enroll-token "Factory install"
 ```
 
@@ -249,7 +256,7 @@ Browser
 
 The initial open-source persistence mode is deliberately honest: it is a **single-writer control plane**. Kubernetes manifests therefore deploy one control-plane replica with a `ReadWriteOnce` volume. A transactional HA storage adapter is a later milestone; v0.2 does not pretend that a local file store is horizontally scalable.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the protocol and failure model.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the protocol and failure model. See [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md) for maintenance cordons, API-token scopes, webhook signing and audit semantics.
 
 ## Kubernetes
 
@@ -298,8 +305,10 @@ Important defaults:
 - production bootstrap requires an explicit admin password;
 - session secret must be 32+ bytes for stable production sessions;
 - cookie sessions are HttpOnly + SameSite Strict;
-- API mutation requests from the web/CLI use a same-origin marker;
-- site agent tokens are independently generated and stored only as SHA-256 digests centrally;
+- browser-session API mutations use a same-origin marker; bearer API tokens are CSRF-independent Authorization credentials;
+- scoped API, enrollment and site-agent bearer tokens are persisted only as SHA-256 digests centrally;
+- outgoing webhooks are HMAC-SHA256 signed and expose delivery health without exposing their signing secret through list APIs;
+- operator/API mutations are recorded in a bounded audit trail without request bodies;
 - state files are mode `0600`;
 - login attempts are throttled;
 - CSP denies third-party scripts/styles/connections;

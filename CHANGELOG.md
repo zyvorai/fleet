@@ -4,6 +4,31 @@
 
 ### Added
 
+- Site maintenance/cordon mode (`PATCH /api/v1/sites/{id}` with
+  `maintenance`/`maintenanceReason`): a serviced site keeps reconciling its
+  last accepted desired state locally but is excluded from new rollout
+  plans unless an operator passes `includeMaintenance` as an explicit
+  break-glass override. Rollout plan/create responses report
+  `maintenanceExcluded` so operators can see what was filtered.
+- Scoped API bearer tokens (`zf_api_...`, `GET|POST /api/v1/api-tokens`,
+  `DELETE /api/v1/api-tokens/{id}`) so CI/GitOps automation can authenticate
+  with `read`, `sites:write`, `rollouts:write` or `admin` scopes instead of
+  a shared human password or browser session. Only a SHA-256 digest is
+  persisted; the plaintext token is returned once at creation, and a role
+  ceiling still applies on top of the scope check.
+- HMAC-SHA256 signed outgoing webhooks (`GET|POST /api/v1/webhooks`,
+  `DELETE /api/v1/webhooks/{id}`, `POST /api/v1/webhooks/{id}/test`) with
+  exact/prefix event-kind filters, a durable per-webhook delivery cursor,
+  and delivery-health tracking (last delivery time, last error,
+  consecutive failures).
+- Bounded mutation audit trail (`GET /api/v1/audit`): the most recent 5,000
+  human/API-token mutation requests, recording actor, method, path,
+  response status, remote IP and timestamp — without request bodies,
+  credentials, agent heartbeat traffic, or login/logout.
+- `fleetctl` support for all of the above (`site-maintenance`,
+  `api-token-create`, `api-tokens`, `webhooks`, `audit`) plus matching
+  web-console controls (site maintenance toggle, automation API tokens,
+  signed webhooks, and a mutation audit table under Settings).
 - `POST /api/v1/sites/{id}/commands` and `GET /api/v1/sites/{id}/commands`:
   wired up the previously-dead ad-hoc command subsystem. The agent-side
   handling for `inventory.refresh` and `agent.ping` (sync delivery, ack)

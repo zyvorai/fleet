@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Zyvor Fleet API
-  version: 0.2.0
+  version: 0.3.0
   description: Offline-first edge fleet control-plane API with dynamic targeting, health-gated staged rollouts and rollback
     safety.
 servers:
@@ -151,9 +151,14 @@ paths:
                   type: object
                   additionalProperties:
                     type: string
+                maintenance:
+                  type: boolean
+                maintenanceReason:
+                  type: string
+                  maxLength: 240
       responses:
         '200':
-          description: Site metadata updated
+          description: Site metadata or maintenance state updated
           content:
             application/json:
               schema:
@@ -340,6 +345,33 @@ paths:
       responses:
         '200':
           description: Token revoked
+  /api/v1/api-tokens:
+    get:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      responses:
+        '200': {description: API token metadata; plaintext and digests are never listed}
+    post:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ZyvorRequest'
+      responses:
+        '201': {description: API token; plaintext token is returned only here}
+  /api/v1/api-tokens/{id}:
+    delete:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      responses:
+        '200': {description: API token revoked}
   /api/v1/revisions:
     get:
       tags:
@@ -462,6 +494,9 @@ paths:
                   - string
                   - 'null'
                   format: date-time
+                includeMaintenance:
+                  type: boolean
+                  default: false
       responses:
         '201':
           description: Rollout started
@@ -491,6 +526,49 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Event'
+  /api/v1/audit:
+    get:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      responses:
+        '200': {description: Bounded mutation audit records, newest first}
+  /api/v1/webhooks:
+    get:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      responses:
+        '200': {description: Webhook metadata and delivery health}
+    post:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      responses:
+        '201': {description: Webhook created; generated signing secret is returned once}
+  /api/v1/webhooks/{id}:
+    delete:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      responses:
+        '200': {description: Webhook removed}
+  /api/v1/webhooks/{id}/test:
+    post:
+      tags: [Administration]
+      security:
+      - cookieAuth: []
+      - apiTokenAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ID'
+      responses:
+        '200': {description: Test delivery accepted by target}
   /api/v1/integrations:
     get:
       tags:
@@ -793,6 +871,10 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+    apiTokenAuth:
+      type: http
+      scheme: bearer
+      description: Scoped Fleet API token with zf_api_ prefix
   parameters:
     ID:
       name: id
@@ -909,6 +991,10 @@ components:
           type: integer
         autonomyMode:
           type: boolean
+        maintenance:
+          type: boolean
+        maintenanceReason:
+          type: string
         failedRevision:
           type: string
         revisionError:

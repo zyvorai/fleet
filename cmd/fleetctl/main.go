@@ -18,10 +18,23 @@ import (
 
 var version = "dev"
 
+type bearerTransport struct {
+	token string
+	base  http.RoundTripper
+}
+
+func (t bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	clone := req.Clone(req.Context())
+	clone.Header = req.Header.Clone()
+	clone.Header.Set("Authorization", "Bearer "+t.token)
+	return t.base.RoundTrip(clone)
+}
+
 func main() {
 	server := flag.String("server", envOr("ZYVOR_FLEET_SERVER", "http://127.0.0.1:8080"), "control plane URL")
 	email := flag.String("email", envOr("ZYVOR_FLEET_ADMIN_EMAIL", "admin@zyvor.local"), "login email")
 	password := flag.String("password", os.Getenv("ZYVOR_FLEET_ADMIN_PASSWORD"), "login password (prefer env)")
+	apiToken := flag.String("api-token", os.Getenv("ZYVOR_FLEET_API_TOKEN"), "scoped API token (prefer env)")
 	flag.Parse()
 	if flag.NArg() < 1 {
 		usage()
@@ -32,14 +45,19 @@ func main() {
 		fmt.Println(version)
 		return
 	}
-	if *password == "" {
-		fmt.Fprintln(os.Stderr, "ZYVOR_FLEET_ADMIN_PASSWORD or --password is required")
-		os.Exit(2)
-	}
 	jar, _ := cookiejar.New(nil)
 	c := &http.Client{Timeout: 15 * time.Second, Jar: jar}
-	if err := login(c, *server, *email, *password); err != nil {
-		fail(err)
+	if *apiToken != "" {
+		c.Jar = nil
+		c.Transport = bearerTransport{token: *apiToken, base: http.DefaultTransport}
+	} else {
+		if *password == "" {
+			fmt.Fprintln(os.Stderr, "ZYVOR_FLEET_ADMIN_PASSWORD/--password or ZYVOR_FLEET_API_TOKEN/--api-token is required")
+			os.Exit(2)
+		}
+		if err := login(c, *server, *email, *password); err != nil {
+			fail(err)
+		}
 	}
 	switch cmd {
 	case "status":
@@ -48,12 +66,18 @@ func main() {
 		printReq(c, *server, "GET", "/api/v1/sites", nil)
 	case "events":
 		printReq(c, *server, "GET", "/api/v1/events?limit=50", nil)
+	case "audit":
+		printReq(c, *server, "GET", "/api/v1/audit?limit=100", nil)
 	case "revisions":
 		printReq(c, *server, "GET", "/api/v1/revisions", nil)
 	case "rollouts":
 		printReq(c, *server, "GET", "/api/v1/rollouts", nil)
 	case "groups":
 		printReq(c, *server, "GET", "/api/v1/site-groups", nil)
+	case "webhooks":
+		printReq(c, *server, "GET", "/api/v1/webhooks", nil)
+	case "api-tokens":
+		printReq(c, *server, "GET", "/api/v1/api-tokens", nil)
 	case "group-create":
 		if flag.NArg() < 3 {
 			fail(fmt.Errorf("group-create requires NAME and key=value[,key=value] selector"))
@@ -70,6 +94,27 @@ func main() {
 		}
 		action := strings.TrimPrefix(cmd, "rollout-")
 		printReq(c, *server, "POST", "/api/v1/rollouts/"+flag.Arg(1)+"/"+action, nil)
+	case "site-maintenance":
+		if flag.NArg() < 3 || (flag.Arg(2) != "on" && flag.Arg(2) != "off") {
+			fail(fmt.Errorf("site-maintenance requires SITE_ID on|off [reason]"))
+		}
+		on := flag.Arg(2) == "on"
+		reason := ""
+		if flag.NArg() > 3 {
+			reason = strings.Join(flag.Args()[3:], " ")
+		}
+		printReq(c, *server, "PATCH", "/api/v1/sites/"+flag.Arg(1), map[string]any{"maintenance": on, "maintenanceReason": reason})
+	case "api-token-create":
+		if flag.NArg() < 4 {
+			fail(fmt.Errorf("api-token-create requires NAME ROLE scope[,scope]"))
+		}
+		scopes := []string{}
+		for _, scope := range strings.Split(flag.Arg(3), ",") {
+			if scope = strings.TrimSpace(scope); scope != "" {
+				scopes = append(scopes, scope)
+			}
+		}
+		printReq(c, *server, "POST", "/api/v1/api-tokens", map[string]any{"name": flag.Arg(1), "role": flag.Arg(2), "scopes": scopes})
 	case "enroll-token":
 		name := "CLI enrollment"
 		if flag.NArg() > 1 {
@@ -133,7 +178,7 @@ func printReq(c *http.Client, server, method, path string, body any) {
 	}
 }
 func usage() {
-	fmt.Fprintln(os.Stderr, "fleetctl [flags] <version|status|sites|events|revisions|rollouts|groups|group-create NAME selector|rollout-plan GROUP_ID|rollout-pause ID|rollout-resume ID|rollout-abort ID|rollout-approve ID|rollout-rollback ID|rollout-retry ID|enroll-token [name]>")
+	fmt.Fprintln(os.Stderr, "fleetctl [flags] <version|status|sites|events|audit|revisions|rollouts|groups|webhooks|api-tokens|group-create NAME selector|rollout-plan GROUP_ID|rollout-pause ID|rollout-resume ID|rollout-abort ID|rollout-approve ID|rollout-rollback ID|rollout-retry ID|site-maintenance SITE_ID on|off [reason]|api-token-create NAME ROLE scope[,scope]|enroll-token [name]>")
 }
 func fail(err error) { fmt.Fprintln(os.Stderr, "fleetctl:", err); os.Exit(1) }
 func envOr(k, v string) string {

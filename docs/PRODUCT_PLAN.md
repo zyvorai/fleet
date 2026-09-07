@@ -35,12 +35,16 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 
 ## v0.3 candidates
 
+- Site maintenance/cordon mode with explicit rollout override.
+- Scoped API tokens for CI/GitOps automation.
+- HMAC-signed outgoing event webhooks with durable delivery cursors.
+- Bounded mutation audit trail for human and API-token operations.
 - Signed desired-state/artifact bundles with policy-controlled trust roots.
 - Agent self-update with staged channels and rollback.
 - Air-gap OCI bundle export/import and local registry mirroring.
-- Webhook/OpenTelemetry export and richer SLO/rollout analytics.
+- OpenTelemetry export and richer SLO/rollout analytics.
 - Fleet-to-Nodra, PacketWolf, Relay, Argus, Forge and HyperCluster integration adapters.
-- OIDC/SAML enterprise identity and short-lived service/API credentials.
+- OIDC/SAML enterprise identity and token federation/rotation.
 - More runtime adapters through a versioned provider interface.
 
 ## v1.0 direction

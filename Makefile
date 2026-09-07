@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 BIN_DIR ?= bin
-VERSION ?= 0.2.0
+VERSION ?= 0.3.0
 
 .PHONY: all build test test-race vet fmt check web-check live-smoke demo docker-up docker-down clean deploy-remote
 all: check build

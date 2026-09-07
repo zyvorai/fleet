@@ -37,50 +37,54 @@ type Inventory struct {
 }
 
 type Site struct {
-	ID               string            `json:"id"`
-	Name             string            `json:"name"`
-	Region           string            `json:"region,omitempty"`
-	Labels           map[string]string `json:"labels,omitempty"`
-	Status           string            `json:"status"`
-	LastSeen         time.Time         `json:"lastSeen"`
-	CreatedAt        time.Time         `json:"createdAt"`
-	AgentVersion     string            `json:"agentVersion,omitempty"`
-	AgentTokenHash   string            `json:"agentTokenHash,omitempty"`
-	Inventory        Inventory         `json:"inventory"`
-	DesiredRevision  string            `json:"desiredRevision,omitempty"`
-	AppliedRevision  string            `json:"appliedRevision,omitempty"`
-	QueuedEvents     int               `json:"queuedEvents"`
-	OfflineSince     *time.Time        `json:"offlineSince,omitempty"`
-	AutonomyMode     bool              `json:"autonomyMode"`
-	FailedRevision   string            `json:"failedRevision,omitempty"`
-	RevisionError    string            `json:"revisionError,omitempty"`
-	WorkloadHealth   []WorkloadHealth  `json:"workloadHealth,omitempty"`
-	IntegrationState map[string]string `json:"integrationState,omitempty"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Region            string            `json:"region,omitempty"`
+	Labels            map[string]string `json:"labels,omitempty"`
+	Status            string            `json:"status"`
+	LastSeen          time.Time         `json:"lastSeen"`
+	CreatedAt         time.Time         `json:"createdAt"`
+	AgentVersion      string            `json:"agentVersion,omitempty"`
+	AgentTokenHash    string            `json:"agentTokenHash,omitempty"`
+	Inventory         Inventory         `json:"inventory"`
+	DesiredRevision   string            `json:"desiredRevision,omitempty"`
+	AppliedRevision   string            `json:"appliedRevision,omitempty"`
+	QueuedEvents      int               `json:"queuedEvents"`
+	OfflineSince      *time.Time        `json:"offlineSince,omitempty"`
+	AutonomyMode      bool              `json:"autonomyMode"`
+	Maintenance       bool              `json:"maintenance,omitempty"`
+	MaintenanceReason string            `json:"maintenanceReason,omitempty"`
+	FailedRevision    string            `json:"failedRevision,omitempty"`
+	RevisionError     string            `json:"revisionError,omitempty"`
+	WorkloadHealth    []WorkloadHealth  `json:"workloadHealth,omitempty"`
+	IntegrationState  map[string]string `json:"integrationState,omitempty"`
 }
 
 type SiteView struct {
-	ID               string            `json:"id"`
-	Name             string            `json:"name"`
-	Region           string            `json:"region,omitempty"`
-	Labels           map[string]string `json:"labels,omitempty"`
-	Status           string            `json:"status"`
-	LastSeen         time.Time         `json:"lastSeen"`
-	CreatedAt        time.Time         `json:"createdAt"`
-	AgentVersion     string            `json:"agentVersion,omitempty"`
-	Inventory        Inventory         `json:"inventory"`
-	DesiredRevision  string            `json:"desiredRevision,omitempty"`
-	AppliedRevision  string            `json:"appliedRevision,omitempty"`
-	QueuedEvents     int               `json:"queuedEvents"`
-	OfflineSince     *time.Time        `json:"offlineSince,omitempty"`
-	AutonomyMode     bool              `json:"autonomyMode"`
-	FailedRevision   string            `json:"failedRevision,omitempty"`
-	RevisionError    string            `json:"revisionError,omitempty"`
-	WorkloadHealth   []WorkloadHealth  `json:"workloadHealth,omitempty"`
-	IntegrationState map[string]string `json:"integrationState,omitempty"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Region            string            `json:"region,omitempty"`
+	Labels            map[string]string `json:"labels,omitempty"`
+	Status            string            `json:"status"`
+	LastSeen          time.Time         `json:"lastSeen"`
+	CreatedAt         time.Time         `json:"createdAt"`
+	AgentVersion      string            `json:"agentVersion,omitempty"`
+	Inventory         Inventory         `json:"inventory"`
+	DesiredRevision   string            `json:"desiredRevision,omitempty"`
+	AppliedRevision   string            `json:"appliedRevision,omitempty"`
+	QueuedEvents      int               `json:"queuedEvents"`
+	OfflineSince      *time.Time        `json:"offlineSince,omitempty"`
+	AutonomyMode      bool              `json:"autonomyMode"`
+	Maintenance       bool              `json:"maintenance,omitempty"`
+	MaintenanceReason string            `json:"maintenanceReason,omitempty"`
+	FailedRevision    string            `json:"failedRevision,omitempty"`
+	RevisionError     string            `json:"revisionError,omitempty"`
+	WorkloadHealth    []WorkloadHealth  `json:"workloadHealth,omitempty"`
+	IntegrationState  map[string]string `json:"integrationState,omitempty"`
 }
 
 func (s Site) View() SiteView {
-	return SiteView{ID: s.ID, Name: s.Name, Region: s.Region, Labels: s.Labels, Status: s.Status, LastSeen: s.LastSeen, CreatedAt: s.CreatedAt, AgentVersion: s.AgentVersion, Inventory: s.Inventory, DesiredRevision: s.DesiredRevision, AppliedRevision: s.AppliedRevision, QueuedEvents: s.QueuedEvents, OfflineSince: s.OfflineSince, AutonomyMode: s.AutonomyMode, FailedRevision: s.FailedRevision, RevisionError: s.RevisionError, WorkloadHealth: s.WorkloadHealth, IntegrationState: s.IntegrationState}
+	return SiteView{ID: s.ID, Name: s.Name, Region: s.Region, Labels: s.Labels, Status: s.Status, LastSeen: s.LastSeen, CreatedAt: s.CreatedAt, AgentVersion: s.AgentVersion, Inventory: s.Inventory, DesiredRevision: s.DesiredRevision, AppliedRevision: s.AppliedRevision, QueuedEvents: s.QueuedEvents, OfflineSince: s.OfflineSince, AutonomyMode: s.AutonomyMode, Maintenance: s.Maintenance, MaintenanceReason: s.MaintenanceReason, FailedRevision: s.FailedRevision, RevisionError: s.RevisionError, WorkloadHealth: s.WorkloadHealth, IntegrationState: s.IntegrationState}
 }
 
 type HealthProbe struct {
@@ -108,6 +112,41 @@ type EnrollmentToken struct {
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 	MaxUses   int        `json:"maxUses"`
 	Uses      int        `json:"uses"`
+}
+
+type APIToken struct {
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	TokenHash  string     `json:"tokenHash,omitempty"`
+	Role       Role       `json:"role"`
+	Scopes     []string   `json:"scopes"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	ExpiresAt  *time.Time `json:"expiresAt,omitempty"`
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty"`
+}
+
+type Webhook struct {
+	ID                  string     `json:"id"`
+	Name                string     `json:"name"`
+	URL                 string     `json:"url"`
+	SigningSecret       string     `json:"signingSecret,omitempty"`
+	EventKinds          []string   `json:"eventKinds,omitempty"`
+	Enabled             bool       `json:"enabled"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	LastEventID         string     `json:"lastEventId,omitempty"`
+	LastDeliveryAt      *time.Time `json:"lastDeliveryAt,omitempty"`
+	LastError           string     `json:"lastError,omitempty"`
+	ConsecutiveFailures int        `json:"consecutiveFailures,omitempty"`
+}
+
+type AuditRecord struct {
+	ID        string    `json:"id"`
+	Actor     string    `json:"actor"`
+	Method    string    `json:"method"`
+	Path      string    `json:"path"`
+	Status    int       `json:"status"`
+	RemoteIP  string    `json:"remoteIp,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Integration struct {
@@ -206,6 +245,9 @@ type State struct {
 	Users            []User            `json:"users"`
 	Sites            []Site            `json:"sites"`
 	EnrollmentTokens []EnrollmentToken `json:"enrollmentTokens"`
+	APITokens        []APIToken        `json:"apiTokens,omitempty"`
+	Webhooks         []Webhook         `json:"webhooks,omitempty"`
+	AuditLog         []AuditRecord     `json:"auditLog,omitempty"`
 	Events           []Event           `json:"events"`
 	Revisions        []Revision        `json:"revisions"`
 	Rollouts         []Rollout         `json:"rollouts"`
