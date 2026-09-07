@@ -2,7 +2,7 @@
 
 Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ecosystem. It stays intentionally separate from Nodra's edge-data path and Fabric's private-cloud VM control plane.
 
-## v0.2.0 — current release
+## v0.3.0 — current release
 
 ### Fleet operations
 
@@ -33,12 +33,15 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 - Hashed enrollment/site tokens, 0600 state files and bounded request bodies.
 - CI, race tests, CodeQL, multi-architecture tagged releases, SBOM/provenance workflow.
 
-## v0.3 candidates
+### Operations safety
 
-- Site maintenance/cordon mode with explicit rollout override.
-- Scoped API tokens for CI/GitOps automation.
-- HMAC-signed outgoing event webhooks with durable delivery cursors.
-- Bounded mutation audit trail for human and API-token operations.
+- Site maintenance/cordon mode: excluded from new rollout plans by default, with an explicit `includeMaintenance` break-glass override.
+- Scoped `zf_api_...` bearer tokens for CI/GitOps automation, digest-stored with a role ceiling.
+- HMAC-SHA256 signed outgoing event webhooks with durable per-webhook delivery cursors and health tracking.
+- Bounded mutation audit trail (5,000 records) for human and API-token operations.
+
+## v0.4 candidates
+
 - Signed desired-state/artifact bundles with policy-controlled trust roots.
 - Agent self-update with staged channels and rollback.
 - Air-gap OCI bundle export/import and local registry mirroring.
@@ -54,4 +57,4 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 - Signed policy/artifact promotion across disconnected regions.
 - Enterprise audit export and integration-driven rollout verification.
 
-The embedded file store remains deliberately single-writer until a real transactional HA backend exists. Fleet does not claim horizontal control-plane HA in v0.2.
+The embedded file store remains deliberately single-writer until a real transactional HA backend exists. Fleet does not claim horizontal control-plane HA in v0.3.

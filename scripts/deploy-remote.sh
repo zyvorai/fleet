@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-VERSION="0.2.0"
+VERSION="0.3.0"
 REMOTE_DIR=""
 DEPLOY_PROFILE="full"
 DEPLOY_LOG="${FLEET_DEPLOY_LOG:-${HOME}/.zyvor-fleet/deploy-$(date +%Y%m%d-%H%M%S).log}"

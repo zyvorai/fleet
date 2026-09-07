@@ -71,7 +71,7 @@ helm upgrade --install zyvor-fleet ./deploy/helm/zyvor-fleet \
 
 ### Why one replica
 
-The v0.2 embedded store is intentionally single-writer and file-backed. Running multiple replicas against a `ReadWriteMany` filesystem would not produce a correct distributed database. The chart therefore fixes the server at one replica and uses `Recreate` strategy.
+The v0.3 embedded store is intentionally single-writer and file-backed. Running multiple replicas against a `ReadWriteMany` filesystem would not produce a correct distributed database. The chart therefore fixes the server at one replica and uses `Recreate` strategy.
 
 ## Agent as a Linux service
 

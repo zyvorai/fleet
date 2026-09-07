@@ -254,7 +254,7 @@ Browser
  systemd/container      k3s/qemu/...
 ```
 
-The initial open-source persistence mode is deliberately honest: it is a **single-writer control plane**. Kubernetes manifests therefore deploy one control-plane replica with a `ReadWriteOnce` volume. A transactional HA storage adapter is a later milestone; v0.2 does not pretend that a local file store is horizontally scalable.
+The initial open-source persistence mode is deliberately honest: it is a **single-writer control plane**. Kubernetes manifests therefore deploy one control-plane replica with a `ReadWriteOnce` volume. A transactional HA storage adapter is a later milestone; v0.3 does not pretend that a local file store is horizontally scalable.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the protocol and failure model. See [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md) for maintenance cordons, API-token scopes, webhook signing and audit semantics.
 
@@ -319,7 +319,9 @@ For production, use TLS directly or through a trusted ingress/reverse proxy. See
 
 ## Product plan
 
-**v0.2 — included here** adds dynamic groups, rollout pre-flight planning, strict waves, approval and maintenance windows, failure budgets, health gates, automatic/manual rollback, retry controls, site metadata, metrics, stronger session revocation, durable fsync writes and stronger offline drift detection.
+**v0.2** added dynamic groups, rollout pre-flight planning, strict waves, approval and maintenance windows, failure budgets, health gates, automatic/manual rollback, retry controls, site metadata, metrics, stronger session revocation, durable fsync writes and stronger offline drift detection.
+
+**v0.3 — included here** adds site maintenance/cordon mode, scoped API tokens for CI/GitOps, HMAC-signed outgoing webhooks and a bounded mutation audit trail. See [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md).
 
 Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): signed artifacts, agent OTA, air-gap OCI bundles, enterprise identity/integrations and a real transactional HA storage adapter.
 
