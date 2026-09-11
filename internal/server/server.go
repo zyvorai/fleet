@@ -1268,7 +1268,7 @@ func (s *Server) agentRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	now := time.Now().UTC()
-	site := model.Site{ID: newID("site"), Name: in.Name, Region: strings.TrimSpace(in.Region), Labels: in.Labels, Status: "online", LastSeen: now, CreatedAt: now, AgentVersion: in.AgentVersion, AgentTokenHash: auth.SHA256Token(agentToken), Inventory: in.Inventory, IntegrationState: map[string]string{"nodra": "available", "packetwolf": "available"}}
+	site := model.Site{ID: newID("site"), Name: in.Name, Region: strings.TrimSpace(in.Region), Labels: in.Labels, Status: "online", LastSeen: now, CreatedAt: now, AgentVersion: in.AgentVersion, AgentTokenHash: auth.SHA256Token(agentToken), Inventory: in.Inventory, IntegrationState: map[string]string{"nodra": "available", "packetwolf": "available", "device-agent": "available"}}
 	validToken := false
 	err = s.store.Update(func(st *model.State) error {
 		h := auth.SHA256Token(enrollment)
@@ -1457,6 +1457,7 @@ func defaultIntegrations() []model.Integration {
 		{ID: "relay", Name: "Zyvor Relay", Purpose: "Durable operational actions and verification"},
 		{ID: "argus", Name: "Argus", Purpose: "Post-rollout application assurance"},
 		{ID: "forge", Name: "Forge", Purpose: "GPU and edge inference operations"},
+		{ID: "device-agent", Name: "Zyvor Device Agent", Purpose: "Local hardware inventory and sensor telemetry merge"},
 	}
 }
 

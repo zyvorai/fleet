@@ -18,6 +18,14 @@ type Config struct {
 	Labels                                map[string]string
 	Interval                              time.Duration
 	Logger                                *slog.Logger
+
+	// DeviceAgentURL, when set, points at a local Zyvor Device Agent
+	// (e.g. "http://127.0.0.1:9188") whose hardware metadata is merged
+	// into every Register/Heartbeat call. Empty disables this entirely.
+	DeviceAgentURL string
+	// DeviceAgentToken authenticates to the Device Agent when it has
+	// auth.mode = "bearer" configured. Empty is fine against auth.mode = "none".
+	DeviceAgentToken string
 }
 
 type Runner struct {
@@ -34,7 +42,11 @@ func NewRunner(cfg Config, state *StateFile) *Runner {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
 	}
-	return &Runner{cfg: cfg, state: state, client: NewClient(cfg.Server), runtime: runtimeadapter.New()}
+	client := NewClient(cfg.Server)
+	client.DeviceAgentURL = cfg.DeviceAgentURL
+	client.DeviceAgentToken = cfg.DeviceAgentToken
+	client.Logger = cfg.Logger
+	return &Runner{cfg: cfg, state: state, client: client, runtime: runtimeadapter.New()}
 }
 
 func (a *Runner) Run(ctx context.Context) error {

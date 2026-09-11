@@ -26,6 +26,8 @@ func main() {
 	state := flag.String("state", envOr("ZYVOR_FLEET_AGENT_STATE", defaultState()), "local agent state file")
 	labels := flag.String("labels", os.Getenv("ZYVOR_FLEET_LABELS"), "comma-separated key=value labels")
 	interval := flag.Duration("interval", 15*time.Second, "sync interval")
+	deviceAgentURL := flag.String("device-agent-url", os.Getenv("ZYVOR_FLEET_DEVICE_AGENT_URL"), "optional local Zyvor Device Agent URL (e.g. http://127.0.0.1:9188) to merge hardware metadata from")
+	deviceAgentToken := flag.String("device-agent-token", os.Getenv("ZYVOR_FLEET_DEVICE_AGENT_TOKEN"), "bearer token for the Device Agent, if it has auth.mode = \"bearer\" configured")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 	if *showVersion {
@@ -38,7 +40,7 @@ func main() {
 		logger.Error("open state", "error", err)
 		os.Exit(1)
 	}
-	r := agent.NewRunner(agent.Config{Server: *server, Name: *name, Region: *region, EnrollmentToken: *enroll, Labels: parseLabels(*labels), Interval: *interval, Logger: logger}, sf)
+	r := agent.NewRunner(agent.Config{Server: *server, Name: *name, Region: *region, EnrollmentToken: *enroll, Labels: parseLabels(*labels), Interval: *interval, Logger: logger, DeviceAgentURL: *deviceAgentURL, DeviceAgentToken: *deviceAgentToken}, sf)
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 	if err := r.Run(ctx); err != nil && err != context.Canceled {

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -21,12 +22,30 @@ type Client struct {
 	BaseURL string
 	HTTP    *http.Client
 	Version string
+
+	// DeviceAgentURL, when set, enriches every Register/Heartbeat inventory
+	// payload with a local Zyvor Device Agent's hardware metadata. Empty
+	// (the default) is fully opt-in and disables this entirely.
+	DeviceAgentURL string
+	// DeviceAgentToken authenticates to the Device Agent's API when it has
+	// auth.mode = "bearer" configured. Empty is fine against a Device Agent
+	// running with auth.mode = "none" (its default).
+	DeviceAgentToken string
+	DeviceAgentHTTP  *http.Client
+	Logger           *slog.Logger
 }
 
 var Version = "dev"
 
 func NewClient(base string) *Client {
-	return &Client{BaseURL: strings.TrimRight(base, "/"), HTTP: &http.Client{Timeout: 12 * time.Second}, Version: Version}
+	return &Client{
+		BaseURL: strings.TrimRight(base, "/"),
+		HTTP:    &http.Client{Timeout: 12 * time.Second},
+		Version: Version,
+		// Short, independent timeout: an unreachable local Device Agent must
+		// never eat into the heartbeat cycle budget.
+		DeviceAgentHTTP: &http.Client{Timeout: 3 * time.Second},
+	}
 }
 
 type Registration struct {
@@ -37,12 +56,12 @@ type Registration struct {
 
 func (c *Client) Register(ctx context.Context, enroll, name, region string, labels map[string]string) (Registration, error) {
 	var out Registration
-	body := map[string]any{"name": name, "region": region, "labels": labels, "agentVersion": c.Version, "inventory": Inventory()}
+	body := map[string]any{"name": name, "region": region, "labels": labels, "agentVersion": c.Version, "inventory": c.enrichWithDeviceAgent(ctx, Inventory())}
 	err := c.do(ctx, http.MethodPost, "/api/v1/agent/register", enroll, "", body, &out)
 	return out, err
 }
 func (c *Client) Heartbeat(ctx context.Context, siteID, token, applied, failedRevision, revisionError string, queued int, autonomy bool, health []model.WorkloadHealth, events []model.Event) error {
-	body := map[string]any{"inventory": Inventory(), "agentVersion": c.Version, "appliedRevision": applied, "failedRevision": failedRevision, "revisionError": revisionError, "queuedEvents": queued, "autonomyMode": autonomy, "workloadHealth": health, "events": events}
+	body := map[string]any{"inventory": c.enrichWithDeviceAgent(ctx, Inventory()), "agentVersion": c.Version, "appliedRevision": applied, "failedRevision": failedRevision, "revisionError": revisionError, "queuedEvents": queued, "autonomyMode": autonomy, "workloadHealth": health, "events": events}
 	return c.do(ctx, http.MethodPost, "/api/v1/agent/heartbeat", token, siteID, body, &struct{}{})
 }
 
