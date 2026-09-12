@@ -1,0 +1,55 @@
+site_name: Zyvor Fleet
+site_description: Offline-first edge fleet control plane for Linux, Kubernetes, containers and virtual machines.
+site_url: https://zyvorai.github.io/fleet/
+repo_url: https://github.com/zyvorai/fleet
+repo_name: zyvorai/fleet
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+theme:
+  name: material
+  logo: material/server-network
+  favicon: material/server-network
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: orange
+      toggle: {icon: material/brightness-7, name: Switch to dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle: {icon: material/brightness-4, name: Switch to light mode}
+  features: [navigation.tabs, navigation.sections, navigation.top, navigation.footer, content.code.copy, search.suggest, search.highlight, toc.follow]
+plugins: [search]
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed: {alternate_style: true}
+  - pymdownx.tasklist: {custom_checkbox: true}
+  - tables
+  - toc: {permalink: true}
+nav:
+  - Home: index.md
+  - Guides:
+      - Tutorial: TUTORIAL.md
+      - Deployment: DEPLOYMENT.md
+      - Troubleshooting: TROUBLESHOOTING.md
+  - Reference:
+      - FAQ: FAQ.md
+      - Runtime adapters: RUNTIME_ADAPTERS.md
+      - v0.3 Operations: V0.3_OPERATIONS.md
+      - Testing: TESTING.md
+  - Roadmap:
+      - Product plan: PRODUCT_PLAN.md
+extra:
+  social:
+    - {icon: fontawesome/brands/github, link: https://github.com/zyvorai/fleet}

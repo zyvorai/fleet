@@ -9,3 +9,6 @@ zyvor-fleet-*.zip
 
 __pycache__/
 *.pyc
+
+.venv-docs/
+site/

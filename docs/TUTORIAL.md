@@ -2,13 +2,14 @@
 
 This is a hands-on walkthrough: stand up a demo fleet, tour the web console,
 declare desired state, promote it in a rollout, and see the CLI equivalent
-of everything you clicked. It complements the terse [README](../README.md)
+of everything you clicked. It complements the terse [README](https://github.com/zyvorai/fleet#readme)
 quick start rather than replacing it — start here if you want the guided
 version.
 
 By the end you'll have a running control plane, two enrolled "edge" sites,
 a revision applied across both, and a working mental model of how Fleet
 behaves when a site's connection drops.
+
 
 ## 1. Start a demo fleet
 
@@ -31,7 +32,7 @@ sends its first heartbeat) and both should show up as online in the
 console.
 
 Prefer to build locally instead of Docker? See the README's
-[Quick start](../README.md#quick-start) for the `make build` + `./bin/fleetd
+[Quick start](https://github.com/zyvorai/fleet#quick-start) for the `make build` + `./bin/fleetd
 --demo` + manual `fleet-agent` path — everything below works the same way
 either way.
 
@@ -93,7 +94,7 @@ one or more workloads, each with a `kind`:
 | `k3s` | maintain a manifest in the k3s manifests directory |
 | `qemu` | start/stop a basic KVM/QEMU VM (opt-in, disabled by default) |
 
-The README's [desired-state example](../README.md#desired-state-example)
+The README's [desired-state example](https://github.com/zyvorai/fleet#desired-state-example)
 mixes `systemd` and `container` workloads — real for a Linux edge host
 with `systemctl` and Docker/Podman installed, but the demo agents here
 don't have either (the container image is intentionally minimal). `k3s`

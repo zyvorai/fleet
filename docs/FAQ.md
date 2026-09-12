@@ -8,8 +8,8 @@ decided to adopt it. Already decided?
 
 **Is it really free?** Yes. Apache-2.0 — use, modify, and run it for
 personal, lab, and commercial production use at no charge, subject to
-preserving notices (see [`NOTICE`](../NOTICE)). See the README's
-[License](../README.md#license) section.
+preserving notices (see [`NOTICE`](https://github.com/zyvorai/fleet/blob/main/NOTICE)). See the README's
+[License](https://github.com/zyvorai/fleet#license) section.
 
 **What does "Enterprise" mean here?** Production support, SLAs, and
 Zyvor's other commercial products are licensed separately from this
@@ -20,7 +20,7 @@ repository requires it.
 
 **What if I find a bug?** Open a GitHub issue.
 
-**What if I find a security vulnerability?** See [`SECURITY.md`](../SECURITY.md)
+**What if I find a security vulnerability?** See [`SECURITY.md`](https://github.com/zyvorai/fleet/blob/main/SECURITY.md)
 for private reporting — supported versions are the latest tagged minor
 release only.
 
@@ -30,7 +30,7 @@ release only.
 maintenance/cordon mode, scoped API tokens, HMAC-signed webhooks, and a
 bounded mutation audit trail — real, shipped features
 ([`docs/V0.3_OPERATIONS.md`](V0.3_OPERATIONS.md)). What's **not** there
-yet: [`ARCHITECTURE.md`](../ARCHITECTURE.md) states plainly that "v0.3 does
+yet: [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) states plainly that "v0.3 does
 not pretend that a local file store is horizontally scalable" — the
 control plane is single-writer. A real transactional HA storage adapter,
 signed artifacts, agent OTA, and air-gap OCI bundles are listed in
@@ -84,5 +84,5 @@ box.
 
 **Can an operator run arbitrary commands on a site through Fleet?** No —
 "The agent exposes no arbitrary remote shell" (README). See
-[`SECURITY.md`](../SECURITY.md) for the full security model and trust
+[`SECURITY.md`](https://github.com/zyvorai/fleet/blob/main/SECURITY.md) for the full security model and trust
 boundaries.

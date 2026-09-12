@@ -1,7 +1,7 @@
 # Troubleshooting
 
 Real operational issues, with the documented fix — not a generic checklist.
-If your symptom isn't here, check [`ARCHITECTURE.md`](../ARCHITECTURE.md)
+If your symptom isn't here, check [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md)
 and [`docs/DEPLOYMENT.md`](DEPLOYMENT.md), then
 [open an issue](https://github.com/zyvorai/fleet/issues).
 
@@ -27,7 +27,7 @@ from proceeding rather than silently marking it done.
 ## Trying to run a second control-plane replica for HA
 
 Not supported today — [`docs/DEPLOYMENT.md`](DEPLOYMENT.md#why-one-replica)
-and [`ARCHITECTURE.md`](../ARCHITECTURE.md) are explicit that v0.3's
+and [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) are explicit that v0.3's
 storage is single-writer; a transactional HA storage adapter is a future
 milestone in [`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md), not present yet.
 Running two replicas against the same store isn't a supported
@@ -61,6 +61,6 @@ expecting it to surface Nodra telemetry; that's not implemented.
 
 ## Nothing here matches
 
-Check [`ARCHITECTURE.md`](../ARCHITECTURE.md) for the full failure model,
+Check [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) for the full failure model,
 then [open an issue](https://github.com/zyvorai/fleet/issues) with your
 `fleetctl` output and relevant logs (redact credentials/tokens).
