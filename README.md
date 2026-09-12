@@ -348,8 +348,13 @@ CI verifies formatting, `go vet`, race-enabled Go tests, JavaScript syntax and a
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+### Open source (Apache-2.0)
 
----
+This repository is licensed under the [Apache License, Version 2.0](LICENSE).
+You may use, modify, and run it for personal, lab, and commercial production
+use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required).
 
-**Zyvor Fleet** is designed to make the control plane optional for continuity, not mandatory for survival.
+### Enterprise
+
+Production support, SLAs, and Zyvor Enterprise products are licensed separately.
+Contact [sales@zyvor.dev](mailto:sales@zyvor.dev) or see [zyvor.dev](https://zyvor.dev).
