@@ -10,7 +10,7 @@
 [![CI](https://github.com/zyvorai/fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/fleet/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/badge/Go-1.27%2B-00ADD8.svg)](go.mod)
 
-[Quick start](#quick-start) · [Tutorial](docs/TUTORIAL.md) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
+[Is this for you?](#is-this-for-you) · [Quick start](#quick-start) · [Tutorial](docs/TUTORIAL.md) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
 
 </div>
 
@@ -53,6 +53,47 @@ Zyvor already has strong point products. Fleet is the **site lifecycle and desir
 | **Zeus OS / Machina** | VM operations | Fleet handles cross-site desired-state rollout, not deep VM management |
 
 Fleet intentionally does **not** reimplement Nodra's device/event data plane or Fabric's private-cloud VM control plane.
+
+## Is this for you?
+
+Zyvor Fleet is a small, open-source (Apache-2.0) site lifecycle/desired-state
+control plane: it declares what should run across systemd/container/k3s/QEMU
+targets, and a small on-site agent keeps reconciling that state — including
+fully offline — with no arbitrary remote shell. It's not a data/event plane
+(that's Nodra), not a general-purpose config management tool, and not a
+cloud-vendor device registry.
+
+| | **Zyvor Fleet** | balena | Azure IoT Hub Device Mgmt | AWS IoT Device Mgmt | Rancher/Fleet (k8s) | Ansible/SaltStack |
+|---|---|---|---|---|---|---|
+| Primary scope | Cross-runtime site desired-state + offline reconciliation | Container fleet + OTA, via balenaCloud | Cloud device twin/management | Cloud device fleet indexing/jobs | Kubernetes cluster/app fleet only | Generic config push, no offline reconciliation loop |
+| Runtime targets | systemd, container (Docker/Podman), k3s, QEMU/KVM | balenaOS containers only | Whatever you build against the SDK | Whatever you build against the SDK | Kubernetes only | Anything reachable over SSH/agent |
+| Offline autonomy | First-class — agent caches the full desired revision and keeps reconciling through WAN loss | Limited — designed around continuous balenaCloud connectivity | Requires connectivity for management ops | Requires connectivity for management ops | Requires API server reachability | Push-based; no continuous offline reconciliation |
+| Cloud dependency | None required | balenaCloud (proprietary) | Azure IoT Hub | AWS IoT Core | Kubernetes API server (self-hostable) | None, but no fleet control plane either |
+| License | Apache-2.0 | Apache-2.0 agent + proprietary balenaCloud | Proprietary (free tier) | Proprietary (free tier) | Apache-2.0 | Open-source core + commercial tiers |
+| HA control plane | Not yet — v0.3 is intentionally single-writer, see below | balenaCloud (managed) | Managed by Azure | Managed by AWS | Kubernetes-native HA | N/A (no central state store) |
+
+*(General characterizations as of writing — verify current features against
+each project's own docs.)*
+
+**Maturity, stated honestly**: current release is v0.3. `ARCHITECTURE.md`
+is explicit that the control plane is single-writer today — "v0.3 does not
+pretend that a local file store is horizontally scalable." A real
+transactional HA storage adapter is listed in
+[`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) as a **future** milestone,
+alongside signed artifacts, agent OTA, and air-gap OCI bundles — not
+present yet.
+
+**Device Agent integration is real, not aspirational**: an opt-in
+`-device-agent-url` flag merges Zyvor Device Agent's namespaced hardware
+metadata into fleet-agent heartbeats (deliberately excluding fields that
+use a different taxonomy than Fleet's own); failure to reach it never
+blocks a heartbeat. The Nodra relationship above, by contrast, is
+architectural/roadmap positioning — there is no code integration between
+Fleet and Nodra in this repository today.
+
+New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
+production-readiness questions; [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+covers real operational issues with their documented fix.
 
 ## Features
 
@@ -327,6 +368,8 @@ Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): 
 
 ## Documentation
 
+- [FAQ](docs/FAQ.md) — licensing, support, production-readiness questions
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — real operational issues, with the fix
 - [Tutorial: getting started](docs/TUTORIAL.md) — a guided walkthrough of the web console and CLI, start to first rollout
 - [Architecture and failure model](ARCHITECTURE.md)
 - [Product plan](docs/PRODUCT_PLAN.md)
