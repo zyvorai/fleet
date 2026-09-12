@@ -1,4 +1,8 @@
-# Zyvor Fleet product plan
+---
+hero:
+  eyebrow: PRODUCT PLAN
+  title: Zyvor Fleet product plan
+---
 
 Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ecosystem. It stays intentionally separate from Nodra's edge-data path and Fabric's private-cloud VM control plane.
 

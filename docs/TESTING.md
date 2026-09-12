@@ -1,4 +1,8 @@
-# Testing
+---
+hero:
+  eyebrow: TESTING
+  title: Testing
+---
 
 ## Release gate
 

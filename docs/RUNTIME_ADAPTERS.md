@@ -1,6 +1,17 @@
-# Runtime adapters
-
-Fleet intentionally has no `shell` workload type. Every desired-state operation goes through a narrow typed adapter with validation.
+---
+hero:
+  eyebrow: REFERENCE
+  title: Runtime adapters
+  lead: Fleet intentionally has no shell workload type. Every desired-state operation goes through one of four narrow typed adapters, each validated before it touches a site.
+  swatches:
+    - {label: systemd}
+    - {label: container}
+    - {label: k3s}
+    - {label: qemu}
+  highlights:
+    - {value: "4", label: "Typed workload kinds — no generic shell primitive"}
+    - {value: "3", label: "Health probe types — runtime, HTTP, TCP — gating every kind"}
+---
 
 ## Health probes
 
@@ -12,56 +23,58 @@ Every running workload can add a local gate:
 
 Supported types are `runtime`, `http`, and `tcp`. Runtime health is always checked first. `graceSeconds` allows a newly promoted workload time to become ready before the agent reports the revision failed.
 
-## systemd
+## Take a closer look
 
-```json
-{"kind":"systemd","name":"chronyd","state":"running"}
-```
+=== "systemd"
 
-Allowed states: `running`, `stopped`, `present` (`present` follows the running path). Fleet checks `systemctl is-active` first and only invokes `start`/`stop` when state differs.
+    ```json
+    {"kind":"systemd","name":"chronyd","state":"running"}
+    ```
 
-## container
+    Allowed states: `running`, `stopped`, `present` (`present` follows the running path). Fleet checks `systemctl is-active` first and only invokes `start`/`stop` when state differs.
 
-```json
-{
-  "kind":"container",
-  "name":"edge-api",
-  "state":"running",
-  "image":"ghcr.io/example/edge-api:1.4.0",
-  "env":{"MODE":"edge"},
-  "ports":["8081:8080"],
-  "args":["--listen",":8080"]
-}
-```
+=== "container"
 
-Podman is preferred; Docker is the fallback. Fleet labels managed containers with a SHA-256 fingerprint of image, args, environment and ports. Any drift in that typed spec causes the container to be replaced, including while the agent is operating from cached desired state offline. Health configuration is intentionally excluded from the container fingerprint so probe-only edits do not restart workloads.
+    ```json
+    {
+      "kind":"container",
+      "name":"edge-api",
+      "state":"running",
+      "image":"ghcr.io/example/edge-api:1.4.0",
+      "env":{"MODE":"edge"},
+      "ports":["8081:8080"],
+      "args":["--listen",":8080"]
+    }
+    ```
 
-## k3s
+    Podman is preferred; Docker is the fallback. Fleet labels managed containers with a SHA-256 fingerprint of image, args, environment and ports. Any drift in that typed spec causes the container to be replaced, including while the agent is operating from cached desired state offline. Health configuration is intentionally excluded from the container fingerprint so probe-only edits do not restart workloads.
 
-```json
-{
-  "kind":"k3s",
-  "name":"local-api",
-  "state":"running",
-  "manifest":"apiVersion: apps/v1\nkind: Deployment\n..."
-}
-```
+=== "k3s"
 
-The agent atomically maintains `zyvor-fleet-<name>.yaml` in `/var/lib/rancher/k3s/server/manifests` by default. Override with `ZYVOR_FLEET_K3S_MANIFEST_DIR`. Identical manifest content is left untouched to avoid unnecessary disk writes. `stopped` removes the managed manifest.
+    ```json
+    {
+      "kind":"k3s",
+      "name":"local-api",
+      "state":"running",
+      "manifest":"apiVersion: apps/v1\nkind: Deployment\n..."
+    }
+    ```
 
-## qemu
+    The agent atomically maintains `zyvor-fleet-<name>.yaml` in `/var/lib/rancher/k3s/server/manifests` by default. Override with `ZYVOR_FLEET_K3S_MANIFEST_DIR`. Identical manifest content is left untouched to avoid unnecessary disk writes. `stopped` removes the managed manifest.
 
-QEMU is deliberately opt-in:
+=== "qemu"
 
-```bash
-export ZYVOR_FLEET_ALLOW_QEMU=1
-```
+    QEMU is deliberately opt-in:
 
-```json
-{"kind":"qemu","name":"legacy-api","state":"running","disk":"/var/lib/edge/images/legacy-api.qcow2","cpus":2,"memoryMiB":2048}
-```
+    ```bash
+    export ZYVOR_FLEET_ALLOW_QEMU=1
+    ```
 
-The disk must be absolute. The adapter creates a simple headless VM and tracks its PID. Deep VM networking, storage, snapshots and migration belong in Zyvor Fabric/Machina/Zeus rather than Fleet.
+    ```json
+    {"kind":"qemu","name":"legacy-api","state":"running","disk":"/var/lib/edge/images/legacy-api.qcow2","cpus":2,"memoryMiB":2048}
+    ```
+
+    The disk must be absolute. The adapter creates a simple headless VM and tracks its PID. Deep VM networking, storage, snapshots and migration belong in Zyvor Fabric/Machina/Zeus rather than Fleet.
 
 ## Permissions
 

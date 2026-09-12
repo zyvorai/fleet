@@ -1,4 +1,8 @@
-# Troubleshooting
+---
+hero:
+  eyebrow: TROUBLESHOOTING
+  title: Troubleshooting
+---
 
 Real operational issues, with the documented fix — not a generic checklist.
 If your symptom isn't here, check [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md)

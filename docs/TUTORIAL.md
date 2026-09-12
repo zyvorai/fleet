@@ -1,4 +1,8 @@
-# Getting started with Zyvor Fleet
+---
+hero:
+  eyebrow: TUTORIAL
+  title: Getting started with Zyvor Fleet
+---
 
 This is a hands-on walkthrough: stand up a demo fleet, tour the web console,
 declare desired state, promote it in a rollout, and see the CLI equivalent

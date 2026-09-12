@@ -1,4 +1,8 @@
-# FAQ
+---
+hero:
+  eyebrow: FAQ
+  title: FAQ
+---
 
 Questions people evaluating Zyvor Fleet actually ask, before they've
 decided to adopt it. Already decided?

@@ -1,4 +1,8 @@
-# Deployment guide
+---
+hero:
+  eyebrow: DEPLOYMENT
+  title: Deployment guide
+---
 
 ## Control plane production checklist
 
