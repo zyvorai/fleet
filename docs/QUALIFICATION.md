@@ -4,9 +4,10 @@ hero:
   title: Production qualification matrix — Zyvor Fleet
 ---
 
-Software rows are automated by `make qualify`. Multi-site WAN-loss drills and
-backup/restore sign-off remain operator-recorded in
-[`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md).
+Software rows are automated by `make qualify`. Lab ops rows for host
+`80.79.5.173` are **signed** in
+[`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md)
+(backup/TLS/non-demo/abbreviated WAN). Multi-site soak and HA remain open.
 
 ## Software (host) rows — `make qualify`
 
@@ -20,9 +21,8 @@ backup/restore sign-off remain operator-recorded in
 | `backup_restore_drill` | `scripts/restore-drill.sh` checksum round-trip |
 
 These prove control-plane, agent smoke, the OTA contract, and scripted
-backup/restore integrity. They do **not** prove HA (v0.3 is single-writer),
-signed artifact policy, multi-day soak, or a live PVC stop→restore→start
-(that remains an operator row).
+backup/restore integrity. They do **not** prove HA (v0.3 is single-writer)
+or multi-day soak.
 
 ## Cross-product lab rows (optional evidence)
 
@@ -35,24 +35,32 @@ Recorded on a shared Linux host — see [LAB.md](LAB.md):
 | `ota_event_ack_drain` | Contiguous ACK clears agent `pending_events` |
 | `device_agent_inventory_merge` | Site metadata includes `zyvor.device_agent.*` |
 
-## Operator / lab rows — signed checklist
+## Operator / lab rows — checklist status
 
-| Test | Required outcome |
+Evidence: `ops-checklist.md`, `lab/20260914T155128Z/`, `lab/20260914T162245Z/`.
+
+| Test | Lab status |
 |---|---|
-| Persistent volume bootstrap | State survives restart; admin login works |
-| Backup and restore | Restored state file yields identical sites/revisions; record digest from `backup-state.sh` / `restore-drill.sh` |
-| TLS termination | Secure cookies / direct TLS as documented |
-| Enrollment token hygiene | Short-lived, low maxUses; agent drops enroll token after first sync |
-| Offline autonomy | WAN cut during apply; agent reconciling from cache |
-| Rollout failure budget | Failed health gate → automatic rollback |
-| OTA device assignment | Real `zyvor-otad` pulls assignment and ACKs events (lab) |
-| Single-replica discipline | No second `fleetd` against the same volume |
+| Persistent volume bootstrap | **pass** (signed) |
+| Backup and restore (live + restore-drill) | **pass** (signed) |
+| TLS termination | **pass** (signed) |
+| Enrollment token hygiene | **pass** (signed) |
+| Offline autonomy (abbreviated WAN cut) | **pass** — `scripts/ci/wan-loss-drill.sh` / `fleet-wan-loss.log` |
+| Rollout failure budget | **pass** — covered by `live_smoke` auto-rollback |
+| OTA device assignment (simulator lab) | **pass** — see LAB.md |
+| Single-replica discipline | **pass** (signed) |
+| Non-demo ExecStart | **pass** — `ZYVOR_FLEET_DEMO=0` |
+| Multi-site / multi-day WAN soak | **open** |
+| HA / multi-writer | **not available** in v0.3 |
 
 ## Maturity note
 
 v0.3 does not provide transactional HA storage. Production is one control-plane
-replica with a tested backup. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
+replica with a tested backup. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md) and
+[PRODUCTION.md](PRODUCTION.md).
 
 ## GitHub CI (lab substitute)
 
-CI runs compose smoke, HTTPS TLS smoke, backup/restore, container build, and govulncheck. These do **not** close live PVC, multi-site WAN-loss, or full zyvor-otad integration rows.
+CI runs compose smoke, HTTPS TLS smoke, backup/restore, container build, and
+govulncheck. These complement (do not replace) the signed lab ops checklist.
+CI still does **not** claim HA, multi-site soak, or Minewing device HIL.

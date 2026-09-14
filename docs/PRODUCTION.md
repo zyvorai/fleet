@@ -9,18 +9,20 @@ For a multi-product evaluation stack (Fleet + OTA simulator + Device Agent +
 Nodra), see [LAB.md](LAB.md) first — that path is not a multi-replica
 production control plane.
 
-## Current maturity (2026-09-14)
+## Current maturity (2026-09-15)
 
 | Claim | Status |
 |---|---|
 | Software matrix + CI lab substitutes | green (`make qualify`, compose/TLS/backup CI) |
-| Ops checklist (backup/TLS/single-replica) | **signed** for lab host — [ops-checklist.md](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md) |
-| Production install without `--demo` | **done on lab** — `ZYVOR_FLEET_DEMO=0`, no `--demo` flag |
+| Ops checklist (backup/TLS/single-replica) | **signed** — [ops-checklist.md](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md); lab `20260914T155128Z` |
+| Production install without `--demo` | **done on lab** — `ZYVOR_FLEET_DEMO=0`, no `--demo` on ExecStart |
+| Abbreviated WAN + live_smoke rollback | **signed** — `lab/20260914T162245Z/fleet-wan-loss.log` |
 | HA / multi-writer | **not available** in v0.3 |
-| WAN-loss / rollout soak | **signed** abbreviated WAN drill + `live_smoke` rollback |
+| Multi-site / multi-day soak | **open** |
 
 **Verdict:** single-writer Fleet is **production-ready** when deployed per this runbook
-(HTTPS, signed ops checklist). Lab host now matches non-demo ExecStart.
+(HTTPS, signed ops checklist, no demo). Lab host matches that posture; rotate
+credentials for customer installs.
 
 ## Preconditions
 

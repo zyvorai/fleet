@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Docs refresh: QUALIFICATION/LAB/FAQ/PRODUCTION reflect signed ops + non-demo
+  lab posture; multi-site soak / HA still open.
+
 - Lab production hardening + signed ops/WAN drills (2026-09-14).
 
 - Signed lab ops checklist (backup/TLS/single-replica); document production maturity.

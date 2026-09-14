@@ -30,22 +30,19 @@ release only.
 
 ## Production readiness
 
-**Is this production-ready?** Current release is v0.3, which added site
-maintenance/cordon mode, scoped API tokens, HMAC-signed webhooks, a
-bounded mutation audit trail, and the Zyvor OTA device assignment/events
-contract ([`docs/OTA_CONTRACT.md`](OTA_CONTRACT.md)). What's **not** there
-yet: [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) states plainly that "v0.3 does
-not pretend that a local file store is horizontally scalable" — the
-control plane is single-writer. A real transactional HA storage adapter,
-signed desired-state artifacts, agent self-update, and air-gap OCI bundles
-are listed in [`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md) as **future**
-milestones, not present today. If you need HA today, evaluate accordingly.
+**Is this production-ready?** For **single-writer** Fleet v0.3: **yes**, when
+deployed with HTTPS, strong admin password + session secret, **no** `--demo`,
+and a signed ops checklist ([PRODUCTION.md](PRODUCTION.md)). Lab host
+`80.79.5.173` already has non-demo + abbreviated WAN signed as a reference —
+customer installs must still rotate secrets and sign their own checklist.
+What's **not** there: HA / multi-writer storage ([ARCHITECTURE.md](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md),
+[PRODUCT_PLAN.md](PRODUCT_PLAN.md)).
 
 **Before going to production, what should I check?** See
-[`docs/DEPLOYMENT.md`](DEPLOYMENT.md)'s checklist and run `make qualify`,
-then sign [`docs/QUALIFICATION.md`](QUALIFICATION.md) / the ops checklist.
-For a multi-product evaluation host (OTA + Device Agent + Nodra), see
-[`docs/LAB.md`](LAB.md).
+[`docs/DEPLOYMENT.md`](DEPLOYMENT.md) and [PRODUCTION.md](PRODUCTION.md):
+`make qualify`, HTTPS, non-demo, backup/restore drill, then sign
+[`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md).
+Multi-product evaluation host: [`docs/LAB.md`](LAB.md).
 
 **Does Fleet speak the Zyvor OTA contract?** Yes — device
 `/v1/devices/{id}/assignment` + `/events` and operator `/api/v1/ota/...`
