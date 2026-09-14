@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- (none)
+- GitHub CI lab substitutes: compose smoke, HTTPS TLS smoke, backup/restore,
+  container build, govulncheck, and suite-ci qualify markers.
 
 ## 0.3.0 — 2026-09-14
 

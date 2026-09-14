@@ -40,3 +40,87 @@ jobs:
           name: qualification-software
           path: evidence/qualification/software-matrix.json
           if-no-files-found: error
+
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compose stack smoke
+        run: |
+          chmod +x scripts/ci/compose-smoke.sh scripts/smoke.sh
+          ./scripts/ci/compose-smoke.sh
+
+  tls-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: sudo apt-get update && sudo apt-get install -y openssl
+      - name: HTTPS fleetd TLS smoke
+        run: |
+          chmod +x scripts/ci/tls-smoke.sh
+          ./scripts/ci/tls-smoke.sh
+
+  backup-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Backup/restore state round-trip
+        run: |
+          chmod +x scripts/ci/backup-restore.sh scripts/backup-state.sh scripts/restore-state.sh
+          ./scripts/ci/backup-restore.sh
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: zyvor-fleet:ci
+
+  suite-ci:
+    needs: [test, compose-smoke, tls-smoke, backup-restore, govulncheck, container]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Qualify with CI lab-substitute markers
+        env:
+          FLEET_QUALIFY_FAST: "1"
+          FLEET_CI_TLS: "1"
+          FLEET_CI_COMPOSE: "1"
+          FLEET_CI_BACKUP: "1"
+        run: python3 scripts/qualify-matrix.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: qualification-suite-ci
+          path: evidence/qualification/software-matrix.json

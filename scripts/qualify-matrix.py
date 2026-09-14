@@ -29,40 +29,62 @@ def main():
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     results = []
     started = datetime.now(timezone.utc).isoformat()
+    fast = os.environ.get("FLEET_QUALIFY_FAST", "") in ("1", "true", "yes")
 
-    proc = run(["sh", "-c", 'test -z "$(gofmt -l cmd internal webui)"'])
-    row(results, "gofmt", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-200:])
-
-    proc = run(["go", "vet", "./..."], timeout=120)
-    row(results, "go_vet", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
-
-    proc = run(["go", "test", "-race", "./..."], timeout=300)
-    row(results, "unit_race", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
-
-    proc = run(["go", "test", "./internal/server/", "-count=1", "-run", "OTA"], timeout=120)
-    row(results, "ota_contract", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
-
-    proc = run(["node", "--check", "webui/static/app.js"], timeout=30)
-    if proc.returncode == 0:
-        row(results, "web_js_syntax", "pass")
-    elif proc.returncode == 127 or "No such file" in (proc.stderr or ""):
-        row(results, "web_js_syntax", "skip", "node not installed")
+    if fast:
+        row(results, "gofmt", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "go_vet", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "unit_race", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "ota_contract", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "web_js_syntax", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "build_binaries", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "live_smoke", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
+        row(results, "backup_restore_drill", "skip", "FLEET_QUALIFY_FAST=1 — covered by CI test")
     else:
-        row(results, "web_js_syntax", "fail", proc.stderr[-200:])
+        proc = run(["sh", "-c", 'test -z "$(gofmt -l cmd internal webui)"'])
+        row(results, "gofmt", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-200:])
 
-    proc = run(["make", "build"], timeout=180)
-    row(results, "build_binaries", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
+        proc = run(["go", "vet", "./..."], timeout=120)
+        row(results, "go_vet", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
 
-    proc = run(["python3", "scripts/live-smoke.py"], timeout=180)
-    row(results, "live_smoke", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
+        proc = run(["go", "test", "-race", "./..."], timeout=300)
+        row(results, "unit_race", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
 
-    proc = run(["bash", "scripts/restore-drill.sh"], timeout=60)
-    row(
-        results,
-        "backup_restore_drill",
-        "pass" if proc.returncode == 0 else "fail",
-        (proc.stdout + proc.stderr)[-300:],
-    )
+        proc = run(["go", "test", "./internal/server/", "-count=1", "-run", "OTA"], timeout=120)
+        row(results, "ota_contract", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
+
+        proc = run(["node", "--check", "webui/static/app.js"], timeout=30)
+        if proc.returncode == 0:
+            row(results, "web_js_syntax", "pass")
+        elif proc.returncode == 127 or "No such file" in (proc.stderr or ""):
+            row(results, "web_js_syntax", "skip", "node not installed")
+        else:
+            row(results, "web_js_syntax", "fail", proc.stderr[-200:])
+
+        proc = run(["make", "build"], timeout=180)
+        row(results, "build_binaries", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
+
+        proc = run(["python3", "scripts/live-smoke.py"], timeout=180)
+        row(results, "live_smoke", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
+
+        proc = run(["bash", "scripts/restore-drill.sh"], timeout=60)
+        row(
+            results,
+            "backup_restore_drill",
+            "pass" if proc.returncode == 0 else "fail",
+            (proc.stdout + proc.stderr)[-300:],
+        )
+
+    for name, env_key, detail in [
+        ("ci_tls_smoke", "FLEET_CI_TLS", "scripts/ci/tls-smoke.sh + CI tls-smoke"),
+        ("ci_compose_smoke", "FLEET_CI_COMPOSE", "scripts/ci/compose-smoke.sh + CI compose-smoke"),
+        ("ci_backup_restore", "FLEET_CI_BACKUP", "scripts/ci/backup-restore.sh + CI backup-restore"),
+    ]:
+        val = os.environ.get(env_key, "")
+        if val in ("1", "true", "pass", "yes"):
+            row(results, name, "pass", detail)
+        else:
+            row(results, name, "skip", f"set {env_key}=1 after CI job; {detail}")
 
     for name, detail in [
         ("backup_restore_live_volume", "operator-signed — real PVC/`--data` stop→restore→start; ops-checklist.md"),

@@ -6,7 +6,7 @@ hero:
 
 Software rows are automated by `make qualify`. Multi-site WAN-loss drills and
 backup/restore sign-off remain operator-recorded in
-[`evidence/qualification/ops-checklist.md`](../evidence/qualification/ops-checklist.md).
+[`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md).
 
 ## Software (host) rows — `make qualify`
 
@@ -52,3 +52,7 @@ Recorded on a shared Linux host — see [LAB.md](LAB.md):
 
 v0.3 does not provide transactional HA storage. Production is one control-plane
 replica with a tested backup. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
+
+## GitHub CI (lab substitute)
+
+CI runs compose smoke, HTTPS TLS smoke, backup/restore, container build, and govulncheck. These do **not** close live PVC, multi-site WAN-loss, or full zyvor-otad integration rows.

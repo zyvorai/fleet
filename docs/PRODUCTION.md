@@ -52,7 +52,7 @@ fleetd --data /var/lib/zyvor-fleet-restored/state.json …
 ```
 
 Record the state digest and drill result in
-[`evidence/qualification/ops-checklist.md`](../evidence/qualification/ops-checklist.md).
+[`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md).
 
 ## Needs attention (known v0.3 limits)
 

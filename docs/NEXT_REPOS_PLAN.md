@@ -1,35 +1,25 @@
 # Production readiness plans (queued)
 
-Scaffolding + P1 polish complete across the suite. Device-agent emulator CI
-and **arm64 native .deb/.rpm** packaging also done.
+Software scaffolding complete. **HIL harnesses** for Minewing device-agent +
+OTA RAUC/power-loss are landed; **silicon sign-off still requires the board
+image / physical unit** (lab host is x86 surrogate only).
 
 ---
 
-## 1. nodra — **done**
+## Device-agent / OTA HIL
 
-**Still open (optional):** soak → SCALE.md, HA.
-
----
-
-## 2. zyvor-device-agent — **done** (emulator CI + arm64 packages)
-
-**Still open:** physical Minewing HIL sign-off only.
-
----
-
-## 3. relay-edge — **done**
-
-**Still open (optional):** deeper soak evidence only.
+| Item | Status |
+|---|---|
+| `zyvor-device-agent` HIL runner | **done** — `scripts/hil/run-minewing-hil.sh` |
+| Lab surrogate evidence | **recorded** — not claimable |
+| Minewing physical sign-off | **blocked** — need aarch64 board + profile |
+| `zyvor-ota` RAUC/power-loss runner | **done** — `scripts/hil/run-rauc-powerloss-hil.sh` |
+| QEMU+RAUC image | **blocked** — set `QUALIFY_QEMU_IMAGE` |
+| Checklist auto-sign | fail-closed until claimable |
 
 ---
 
-## Fleet — **done** for queued follow-ups
+## Suggested next
 
-Optional leftovers: fake systemctl harness, metrics auth / NetworkPolicy,
-live PVC restore sign-off.
-
----
-
-## Suggested next (only if asked)
-
-Physical HIL on Minewing GW1 r1, or suite-wide soak — not blocking software.
+Provide Minewing QEMU image path + SSH to guest (or physical board), re-run
+HIL with logs attached, then `DA_HIL_SIGN=1` / `OTA_HIL_SIGN=1`.
