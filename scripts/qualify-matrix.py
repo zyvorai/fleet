@@ -67,7 +67,7 @@ def main():
     for name, detail in [
         ("backup_restore_live_volume", "operator-signed — real PVC/`--data` stop→restore→start; ops-checklist.md"),
         ("multi_site_wan_loss", "operator-signed lab drill"),
-        ("ota_zyvor_otad_integration", "requires real zyvor-otad against this control plane"),
+        ("ota_zyvor_otad_integration", "lab or zyvor-ota CI lab-substitute (fleet-ref HTTPS commit)"),
     ]:
         row(results, name, "skip", detail)
 
