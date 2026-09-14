@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Signed lab ops checklist (backup/TLS/single-replica); document production maturity.
+
 - GitHub CI lab substitutes: compose smoke, HTTPS TLS smoke, backup/restore,
   container build, govulncheck, and suite-ci qualify markers.
 

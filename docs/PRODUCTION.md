@@ -9,6 +9,20 @@ For a multi-product evaluation stack (Fleet + OTA simulator + Device Agent +
 Nodra), see [LAB.md](LAB.md) first — that path is not a multi-replica
 production control plane.
 
+## Current maturity (2026-09-14)
+
+| Claim | Status |
+|---|---|
+| Software matrix + CI lab substitutes | green (`make qualify`, compose/TLS/backup CI) |
+| Ops checklist (backup/TLS/single-replica) | **signed** for lab host — [ops-checklist.md](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md) |
+| Production install without `--demo` | **operator** — unset `ZYVOR_FLEET_DEMO`, set admin password + session secret |
+| HA / multi-writer | **not available** in v0.3 |
+| WAN-loss / rollout soak | **unsigned** (blocked on checklist) |
+
+**Verdict:** single-writer Fleet is **production-ready** when deployed per this runbook
+(no demo, HTTPS, signed ops checklist on the target host). The shared lab host remains
+an evaluation stack with `--demo`.
+
 ## Preconditions
 
 1. Software matrix green: `make qualify` → `evidence/qualification/software-matrix.json`.
