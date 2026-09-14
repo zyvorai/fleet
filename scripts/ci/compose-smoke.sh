@@ -7,7 +7,8 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
 cleanup() { docker compose down -v --remove-orphans >/dev/null 2>&1 || true; }
 trap cleanup EXIT
-docker compose up --build -d
+docker compose build
+docker compose up -d --no-build
 for i in $(seq 1 60); do
   if curl -fsS http://127.0.0.1:8080/healthz >/dev/null 2>&1; then
     break
