@@ -35,9 +35,46 @@ jobs:
           go build -trimpath -ldflags="-s -w -X github.com/zyvorai/fleet/internal/agent.Version=${VERSION}" -o "dist/fleet-agent-${GOOS}-${GOARCH}" ./cmd/fleet-agent
           go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "dist/fleetctl-${GOOS}-${GOARCH}" ./cmd/fleetctl
           cd dist && sha256sum * > "SHA256SUMS-${GOOS}-${GOARCH}.txt"
-      - uses: softprops/action-gh-release@v3
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+      - name: Assemble dist and unified checksums
+        run: |
+          mkdir -p dist
+          find artifacts -type f -exec cp {} dist/ \;
+          cd dist
+          # Prefer a single SHA256SUMS covering all binaries (ignore per-arch lists).
+          rm -f SHA256SUMS SHA256SUMS-*.txt
+          sha256sum fleetd-* fleet-agent-* fleetctl-* > SHA256SUMS
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign checksums
+        run: cosign sign-blob --yes --bundle dist/SHA256SUMS.sigstore.json dist/SHA256SUMS
+      - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
+          generate_release_notes: true
+          body: |
+            Zyvor Fleet ${{ github.ref_name }}
+
+            Verify `SHA256SUMS` with Cosign against this workflow identity, then `sha256sum -c SHA256SUMS`.
+            Qualification status: see `docs/QUALIFICATION.md` (not implied by the tag alone).
+            OTA device contract: `docs/OTA_CONTRACT.md`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   container:
     runs-on: ubuntu-latest

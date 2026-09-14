@@ -87,9 +87,12 @@ present yet.
 `-device-agent-url` flag merges Zyvor Device Agent's namespaced hardware
 metadata into fleet-agent heartbeats (deliberately excluding fields that
 use a different taxonomy than Fleet's own); failure to reach it never
-blocks a heartbeat. The Nodra relationship above, by contrast, is
-architectural/roadmap positioning — there is no code integration between
-Fleet and Nodra in this repository today.
+blocks a heartbeat. **Zyvor OTA integration is real on the contract
+surface**: Fleet serves `/v1/devices/{id}/assignment` and `/events` with
+digest-bound device tokens ([docs/OTA_CONTRACT.md](docs/OTA_CONTRACT.md)).
+The Nodra relationship above remains architectural/roadmap positioning —
+there is no code integration between Fleet and Nodra in this repository
+today.
 
 New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
 production-readiness questions; [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
@@ -371,9 +374,12 @@ Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): 
 - [FAQ](docs/FAQ.md) — licensing, support, production-readiness questions
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — real operational issues, with the fix
 - [Tutorial: getting started](docs/TUTORIAL.md) — a guided walkthrough of the web console and CLI, start to first rollout
+- [Lab stack](docs/LAB.md) — deploy with TLS, wire Zyvor OTA / Device Agent
+- [OTA contract](docs/OTA_CONTRACT.md) — device assignment + contiguous event ACK
 - [Architecture and failure model](ARCHITECTURE.md)
 - [Product plan](docs/PRODUCT_PLAN.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
+- [Production](docs/PRODUCTION.md) · [Qualification](docs/QUALIFICATION.md)
 - [Runtime adapters](docs/RUNTIME_ADAPTERS.md)
 - [REST API / OpenAPI](docs/openapi.yaml)
 - [Security](SECURITY.md)
@@ -385,6 +391,7 @@ Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): 
 make check
 make test-race
 make live-smoke
+make qualify
 ```
 
 CI verifies formatting, `go vet`, race-enabled Go tests, JavaScript syntax and all binaries. The integration tests also exercise dynamic selectors, pre-flight planning, approval and rollout lifecycle controls, strict inter-wave pauses, health failures, automatic rollback/retry, active-rollout deletion protection, metrics, session revocation, and typed runtime health/drift behavior.

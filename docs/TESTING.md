@@ -34,8 +34,17 @@ The Go suite exercises:
 - failure budgets, automatic rollback and retry;
 - deletion protection for sites participating in active rollouts;
 - runtime, HTTP and TCP health probes;
-- container desired-spec drift fingerprints and k3s reconciliation;
-- Prometheus metrics output.
+- container desired-spec fingerprints and k3s reconciliation;
+- Prometheus metrics output;
+- Zyvor OTA device assignment + contiguous event ACK (`TestOTAContract*`).
+
+## Qualification matrix
+
+Prefer `make qualify` for the software evidence pack written under
+`evidence/qualification/`. It wraps the release gate plus live smoke and OTA
+contract tests. Operator/lab rows (backup/restore, WAN-loss, multi-day soak)
+remain in [QUALIFICATION.md](QUALIFICATION.md). Multi-product lab wiring:
+[LAB.md](LAB.md).
 
 ## Manual/live release smoke
 

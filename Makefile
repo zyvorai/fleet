@@ -2,7 +2,7 @@ SHELL := /bin/sh
 BIN_DIR ?= bin
 VERSION ?= 0.3.0
 
-.PHONY: all build test test-race vet fmt check web-check live-smoke demo docker-up docker-down clean deploy-remote
+.PHONY: all build test test-race vet fmt check web-check live-smoke qualify demo docker-up docker-down clean deploy-remote
 all: check build
 
 build:
@@ -28,6 +28,9 @@ web-check:
 
 live-smoke: build
 	python3 scripts/live-smoke.py
+
+qualify: build
+	python3 scripts/qualify-matrix.py
 
 check:
 	test -z "$$(gofmt -l cmd internal webui)"

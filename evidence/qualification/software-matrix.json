@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-09-14T07:35:56.615945+00:00",
+  "finished_at": "2026-09-14T07:36:01.990740+00:00",
+  "product": "zyvor-fleet",
+  "version": "0.3.0",
+  "host": "Darwin",
+  "results": [
+    {
+      "id": "gofmt",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "go_vet",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "unit_race",
+      "status": "pass",
+      "detail": "\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/auth\t(cached)\n?   \tgithub.com/zyvorai/fleet/internal/model\t[no test files]\nok  \tgithub.com/zyvorai/fleet/internal/ops\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/runtimeadapter\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/server\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/store\t(cached)\n?   \tgithub.com/zyvorai/fleet/webui\t[no test files]\n",
+      "class": "software"
+    },
+    {
+      "id": "ota_contract",
+      "status": "pass",
+      "detail": "ok  \tgithub.com/zyvorai/fleet/internal/server\t0.382s\n",
+      "class": "software"
+    },
+    {
+      "id": "web_js_syntax",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "build_binaries",
+      "status": "pass",
+      "detail": "-w -X main.version=0.3.0\" -o bin/fleetd ./cmd/fleetd\nCGO_ENABLED=0 go build -trimpath -ldflags=\"-s -w -X github.com/zyvorai/fleet/internal/agent.Version=0.3.0\" -o bin/fleet-agent ./cmd/fleet-agent\nCGO_ENABLED=0 go build -trimpath -ldflags=\"-s -w -X main.version=0.3.0\" -o bin/fleetctl ./cmd/fleetctl\n",
+      "class": "software"
+    },
+    {
+      "id": "live_smoke",
+      "status": "pass",
+      "detail": "ctory-01\",\n        \"Region\": \"test-west\",\n        \"Status\": \"online\",\n        \"Labels\": {\n          \"class\": \"factory\",\n          \"env\": \"prod\"\n        }\n      }\n    ],\n    \"total\": 1,\n    \"waveSize\": 1,\n    \"waves\": 1\n  },\n  \"baselineRollout\": \"rol_5viNDkO85MsTnN\",\n  \"failedRollout\": \"rol_c16LV0UNYETpYe\",\n  \"autoRollback\": true,\n  \"offlineRepair\": true,\n  \"reconnected\": true,\n  \"metrics\": true\n}\n",
+      "class": "software"
+    },
+    {
+      "id": "backup_restore_drill",
+      "status": "skip",
+      "detail": "operator-signed \u2014 evidence/qualification/ops-checklist.md",
+      "class": "software"
+    },
+    {
+      "id": "multi_site_wan_loss",
+      "status": "skip",
+      "detail": "operator-signed lab drill",
+      "class": "software"
+    },
+    {
+      "id": "ota_zyvor_otad_integration",
+      "status": "skip",
+      "detail": "requires real zyvor-otad against this control plane",
+      "class": "software"
+    }
+  ],
+  "software_pass": true,
+  "ops_claimed": false,
+  "note": "Ops/lab rows are skip until evidence/qualification/ops-checklist.md is signed."
+}

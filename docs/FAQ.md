@@ -31,21 +31,26 @@ release only.
 ## Production readiness
 
 **Is this production-ready?** Current release is v0.3, which added site
-maintenance/cordon mode, scoped API tokens, HMAC-signed webhooks, and a
-bounded mutation audit trail — real, shipped features
-([`docs/V0.3_OPERATIONS.md`](V0.3_OPERATIONS.md)). What's **not** there
+maintenance/cordon mode, scoped API tokens, HMAC-signed webhooks, a
+bounded mutation audit trail, and the Zyvor OTA device assignment/events
+contract ([`docs/OTA_CONTRACT.md`](OTA_CONTRACT.md)). What's **not** there
 yet: [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) states plainly that "v0.3 does
 not pretend that a local file store is horizontally scalable" — the
 control plane is single-writer. A real transactional HA storage adapter,
-signed artifacts, agent OTA, and air-gap OCI bundles are listed in
-[`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md) as **future** milestones, not
-present today. If you need HA today, evaluate accordingly.
+signed desired-state artifacts, agent self-update, and air-gap OCI bundles
+are listed in [`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md) as **future**
+milestones, not present today. If you need HA today, evaluate accordingly.
 
 **Before going to production, what should I check?** See
-[`docs/DEPLOYMENT.md`](DEPLOYMENT.md)'s "Control plane production
-checklist" — persistent volume, admin password, session secret, and TLS
-are all called out explicitly as things a default/demo setup won't have
-configured for you.
+[`docs/DEPLOYMENT.md`](DEPLOYMENT.md)'s checklist and run `make qualify`,
+then sign [`docs/QUALIFICATION.md`](QUALIFICATION.md) / the ops checklist.
+For a multi-product evaluation host (OTA + Device Agent + Nodra), see
+[`docs/LAB.md`](LAB.md).
+
+**Does Fleet speak the Zyvor OTA contract?** Yes — device
+`/v1/devices/{id}/assignment` + `/events` and operator `/api/v1/ota/...`
+([`docs/OTA_CONTRACT.md`](OTA_CONTRACT.md)). OTA agents need HTTPS
+`fleet_url` and a trusted CA. Event ACKs are contiguous.
 
 ## Runtime & platform support
 

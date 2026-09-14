@@ -80,3 +80,24 @@ The v0.3 embedded store is intentionally single-writer and file-backed. Running 
 ## Agent as a Linux service
 
 The usual edge deployment is a direct Linux service, not a pod. The provided systemd unit reads `/etc/zyvor-fleet/agent.env`. After first enrollment the durable site credential lives in the configured agent state file; remove the enrollment token from the environment when practical.
+
+## Port collisions and OTA TLS
+
+On shared lab hosts, `:8080` (and nearby ports) may already be in use. Pass
+`--port 18090` (or another free port) to `scripts/deploy-remote.sh`.
+
+Zyvor OTA requires **HTTPS** for `fleet_url`. Prefer direct TLS on `fleetd`
+(`--tls-cert` / `--tls-key`) with a SAN that includes the address agents use
+(`127.0.0.1` for co-located demos). Install the CA into the host trust store
+(or set OTA `fleet_ca`) so Go TLS clients accept it. Full topology and
+recorded results: [LAB.md](LAB.md).
+
+## Remote smoke deploy
+
+```bash
+./scripts/deploy-remote.sh HOST USER --key --port 18090
+```
+
+Demo mode (`--demo`) is for evaluation only — see the production checklist
+above and [PRODUCTION.md](PRODUCTION.md).
+

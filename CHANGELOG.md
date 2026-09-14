@@ -4,6 +4,14 @@
 
 ### Added
 
+- Zyvor OTA adapter contract on the control plane:
+  `GET /v1/devices/{device_id}/assignment`, `POST /v1/devices/{device_id}/events`,
+  digest-bound device tokens, and operator APIs under `/api/v1/ota/...`
+  (see `docs/OTA_CONTRACT.md`).
+- `make qualify` software matrix + `docs/QUALIFICATION.md` /
+  `docs/PRODUCTION.md` + `evidence/qualification/`.
+- Release workflow Cosign-signs unified `SHA256SUMS`; Helm/k8s image tags
+  locked to **0.3.0**.
 - Site maintenance/cordon mode (`PATCH /api/v1/sites/{id}` with
   `maintenance`/`maintenanceReason`): a serviced site keeps reconciling its
   last accepted desired state locally but is excluded from new rollout

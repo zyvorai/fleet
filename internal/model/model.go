@@ -3,7 +3,10 @@
 
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Role string
 
@@ -240,6 +243,29 @@ type Command struct {
 	Error     string            `json:"error,omitempty"`
 }
 
+// OTADevice is a Zyvor OTA agent identity bound to a bearer token digest.
+// See docs/OTA_CONTRACT.md (matches zyvor-ota docs/FLEET.md).
+type OTADevice struct {
+	DeviceID   string           `json:"deviceId"`
+	Name       string           `json:"name,omitempty"`
+	SiteID     string           `json:"siteId,omitempty"`
+	TokenHash  string           `json:"tokenHash"`
+	CreatedAt  time.Time        `json:"createdAt"`
+	Assignment json.RawMessage  `json:"assignment,omitempty"`
+	AckedSeq   uint64           `json:"ackedSequence"`
+	Events     []OTADeviceEvent `json:"events,omitempty"`
+}
+
+// OTADeviceEvent is one OTA agent outbox event retained for Fleet consumption.
+type OTADeviceEvent struct {
+	Sequence uint64          `json:"sequence"`
+	JobID    string          `json:"job_id"`
+	State    string          `json:"state"`
+	Error    string          `json:"error,omitempty"`
+	Time     time.Time       `json:"time"`
+	Raw      json.RawMessage `json:"-"`
+}
+
 type State struct {
 	SchemaVersion    int               `json:"schemaVersion"`
 	Users            []User            `json:"users"`
@@ -254,4 +280,5 @@ type State struct {
 	SiteGroups       []SiteGroup       `json:"siteGroups"`
 	Commands         []Command         `json:"commands"`
 	Integrations     []Integration     `json:"integrations"`
+	OTADevices       []OTADevice       `json:"otaDevices,omitempty"`
 }

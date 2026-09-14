@@ -103,6 +103,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/agent/ack", s.agentAck)
 	mux.Handle("GET /api/v1/integrations", s.requireAuth(http.HandlerFunc(s.integrations)))
 	mux.Handle("PATCH /api/v1/integrations/{id}", s.requireRoles(http.HandlerFunc(s.updateIntegration), model.RoleAdmin))
+	s.registerOTARoutes(mux)
 	mux.Handle("/", webui.Handler())
 	return s.securityHeaders(s.accessLog(s.auditMutations(mux)))
 }
@@ -1458,6 +1459,7 @@ func defaultIntegrations() []model.Integration {
 		{ID: "argus", Name: "Argus", Purpose: "Post-rollout application assurance"},
 		{ID: "forge", Name: "Forge", Purpose: "GPU and edge inference operations"},
 		{ID: "device-agent", Name: "Zyvor Device Agent", Purpose: "Local hardware inventory and sensor telemetry merge"},
+		{ID: "ota", Name: "Zyvor OTA", Purpose: "Signed OS assignment/events contract (/v1/devices/...)"},
 	}
 }
 

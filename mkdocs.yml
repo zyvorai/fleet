@@ -46,10 +46,14 @@ nav:
   - Guides:
       - Tutorial: TUTORIAL.md
       - Deployment: DEPLOYMENT.md
+      - Lab: LAB.md
+      - Production: PRODUCTION.md
+      - Qualification: QUALIFICATION.md
       - Troubleshooting: TROUBLESHOOTING.md
   - Reference:
       - FAQ: FAQ.md
       - Runtime adapters: RUNTIME_ADAPTERS.md
+      - OTA contract: OTA_CONTRACT.md
       - v0.3 Operations: V0.3_OPERATIONS.md
       - Testing: TESTING.md
   - Roadmap:

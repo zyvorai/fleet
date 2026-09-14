@@ -11,6 +11,7 @@ hero:
   hub_bands:
     - {icon: "🚀", title: "Tutorial", description: "A hands-on walkthrough: stand up a demo fleet, tour the web console, declare desired state, and promote your first rollout.", href: TUTORIAL.md}
     - {icon: "📦", title: "Deployment guide", description: "Systemd, Docker Compose, and Kubernetes/Helm install paths, plus the production checklist to run before go-live.", href: DEPLOYMENT.md}
+    - {icon: "🧪", title: "Lab stack", description: "Deploy Fleet with TLS, wire Zyvor OTA and Device Agent, and record what the evaluation host proved.", href: LAB.md}
     - {icon: "⚙️", title: "Runtime adapters", description: "What each workload kind — systemd, container, k3s, QEMU — does, and its safety boundary.", href: RUNTIME_ADAPTERS.md}
     - {icon: "🛠️", title: "Troubleshooting", description: "Real operational issues people hit, with the documented fix — not a generic checklist.", href: TROUBLESHOOTING.md}
     - {icon: "💬", title: "FAQ", description: "Licensing, support, and production-readiness questions people ask before adopting Fleet.", href: FAQ.md}

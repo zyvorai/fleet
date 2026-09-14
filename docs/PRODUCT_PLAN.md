@@ -43,6 +43,7 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 - Scoped `zf_api_...` bearer tokens for CI/GitOps automation, digest-stored with a role ceiling.
 - HMAC-SHA256 signed outgoing event webhooks with durable per-webhook delivery cursors and health tracking.
 - Bounded mutation audit trail (5,000 records) for human and API-token operations.
+- **Zyvor OTA adapter contract**: `/v1/devices/{id}/assignment` + `/events` with digest-bound device tokens; operator APIs under `/api/v1/ota/...` (see [OTA_CONTRACT.md](OTA_CONTRACT.md)).
 
 ## v0.4 candidates
 
@@ -50,9 +51,10 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 - Agent self-update with staged channels and rollback.
 - Air-gap OCI bundle export/import and local registry mirroring.
 - OpenTelemetry export and richer SLO/rollout analytics.
-- Fleet-to-Nodra, PacketWolf, Relay, Argus, Forge and HyperCluster integration adapters.
+- Fleet-to-Nodra, PacketWolf, Relay, Argus, Forge and HyperCluster integration adapters (beyond config stubs).
 - OIDC/SAML enterprise identity and token federation/rotation.
 - More runtime adapters through a versioned provider interface.
+- OTA assignment rollout waves with observation windows (policy UI on top of the shipped contract).
 
 ## v1.0 direction
 
