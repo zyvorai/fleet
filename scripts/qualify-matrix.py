@@ -56,8 +56,16 @@ def main():
     proc = run(["python3", "scripts/live-smoke.py"], timeout=180)
     row(results, "live_smoke", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
 
+    proc = run(["bash", "scripts/restore-drill.sh"], timeout=60)
+    row(
+        results,
+        "backup_restore_drill",
+        "pass" if proc.returncode == 0 else "fail",
+        (proc.stdout + proc.stderr)[-300:],
+    )
+
     for name, detail in [
-        ("backup_restore_drill", "operator-signed — evidence/qualification/ops-checklist.md"),
+        ("backup_restore_live_volume", "operator-signed — real PVC/`--data` stop→restore→start; ops-checklist.md"),
         ("multi_site_wan_loss", "operator-signed lab drill"),
         ("ota_zyvor_otad_integration", "requires real zyvor-otad against this control plane"),
     ]:

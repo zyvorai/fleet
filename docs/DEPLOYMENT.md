@@ -10,7 +10,8 @@ hero:
 2. Set `ZYVOR_FLEET_ADMIN_PASSWORD` before first bootstrap.
 3. Set a stable random `ZYVOR_FLEET_SESSION_SECRET` with at least 32 bytes.
 4. Put the service behind HTTPS (or provide `--tls-cert` and `--tls-key` directly).
-5. Back up the state file and test restore.
+5. Back up the state file and test restore (`scripts/backup-state.sh`,
+   `scripts/restore-drill.sh`, `scripts/restore-state.sh` — see [PRODUCTION.md](PRODUCTION.md)).
 6. Keep one control-plane replica for the embedded-store mode.
 7. Restrict network access to the UI/API as appropriate, while permitting outbound edge agents to reach it.
 8. Use short-lived, low-use enrollment tokens.

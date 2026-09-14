@@ -2,8 +2,20 @@
 
 ## Unreleased
 
+- (none)
+
+## 0.3.0 — 2026-09-14
+
+OTA contract, production qualification scaffolding, Cosign on release
+`SHA256SUMS`, and operations surfaces aligned with packaging **0.3.0**
+(Helm/k8s/OpenAPI/image tags).
+
+
 ### Added
 
+- Control-plane state backup/restore scripts (`scripts/backup-state.sh`,
+  `scripts/restore-state.sh`) plus `scripts/restore-drill.sh` for a local
+  checksum round-trip against `--data` / `ZYVOR_FLEET_DATA`.
 - Zyvor OTA adapter contract on the control plane:
   `GET /v1/devices/{device_id}/assignment`, `POST /v1/devices/{device_id}/events`,
   digest-bound device tokens, and operator APIs under `/api/v1/ota/...`

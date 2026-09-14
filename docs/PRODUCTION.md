@@ -34,9 +34,29 @@ device (`fleet_token_file`), never in git. Publish signed Assignment JSON with
 `PUT …/assignment`. Clear with `DELETE` after terminal events are observed.
 Contract details: [OTA_CONTRACT.md](OTA_CONTRACT.md).
 
+## Backup and restore
+
+v0.3 is single-writer. Failover is restore-from-backup onto one new `fleetd`.
+
+```bash
+# Prefer a quiet writer (stop fleetd or snapshot the volume first)
+./scripts/backup-state.sh /var/lib/zyvor-fleet/state.json
+# → fleet-backup-….tar.gz + .SHA256SUMS (+ state digest for ops-checklist)
+
+# Dry checksum round-trip (no fleetd):
+./scripts/restore-drill.sh /var/lib/zyvor-fleet/state.json
+
+# Disaster recovery onto an empty directory (stop the old writer first):
+./scripts/restore-state.sh fleet-backup-….tar.gz /var/lib/zyvor-fleet-restored
+fleetd --data /var/lib/zyvor-fleet-restored/state.json …
+```
+
+Record the state digest and drill result in
+[`evidence/qualification/ops-checklist.md`](../evidence/qualification/ops-checklist.md).
+
 ## Needs attention (known v0.3 limits)
 
-- No HA / multi-writer store — failover is restore-from-backup.
+- No HA / multi-writer store — failover is restore-from-backup (scripts above).
 - Webhook dispatch is opportunistic on API traffic; prefer a health-check poller that hits authenticated APIs if delivery must be prompt.
 - Demo mode (`--demo`) and compose stack are evaluation-only.
 

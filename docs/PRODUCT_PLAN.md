@@ -59,7 +59,8 @@ Fleet is the site lifecycle and desired-state coordination layer in the Zyvor ec
 ## v1.0 direction
 
 - Transactional HA storage adapter with leader-safe rollout coordination.
-- Multi-control-plane disaster recovery and tested backup/restore tooling.
+- Multi-control-plane disaster recovery beyond the single-writer
+  `scripts/backup-state.sh` / `restore-state.sh` path shipped in v0.3.
 - Signed policy/artifact promotion across disconnected regions.
 - Enterprise audit export and integration-driven rollout verification.
 

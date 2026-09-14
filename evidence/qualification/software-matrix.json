@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-14T07:35:56.615945+00:00",
-  "finished_at": "2026-09-14T07:36:01.990740+00:00",
+  "generated_at": "2026-09-14T12:06:06.827586+00:00",
+  "finished_at": "2026-09-14T12:06:48.115680+00:00",
   "product": "zyvor-fleet",
   "version": "0.3.0",
   "host": "Darwin",
@@ -20,13 +20,13 @@
     {
       "id": "unit_race",
       "status": "pass",
-      "detail": "\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/auth\t(cached)\n?   \tgithub.com/zyvorai/fleet/internal/model\t[no test files]\nok  \tgithub.com/zyvorai/fleet/internal/ops\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/runtimeadapter\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/server\t(cached)\nok  \tgithub.com/zyvorai/fleet/internal/store\t(cached)\n?   \tgithub.com/zyvorai/fleet/webui\t[no test files]\n",
+      "detail": "ernal/agent\t2.424s\nok  \tgithub.com/zyvorai/fleet/internal/auth\t2.875s\n?   \tgithub.com/zyvorai/fleet/internal/model\t[no test files]\nok  \tgithub.com/zyvorai/fleet/internal/ops\t2.914s\nok  \tgithub.com/zyvorai/fleet/internal/runtimeadapter\t2.477s\nok  \tgithub.com/zyvorai/fleet/internal/server\t18.112s\nok  \tgithub.com/zyvorai/fleet/internal/store\t3.325s\n?   \tgithub.com/zyvorai/fleet/webui\t[no test files]\n",
       "class": "software"
     },
     {
       "id": "ota_contract",
       "status": "pass",
-      "detail": "ok  \tgithub.com/zyvorai/fleet/internal/server\t0.382s\n",
+      "detail": "ok  \tgithub.com/zyvorai/fleet/internal/server\t0.723s\n",
       "class": "software"
     },
     {
@@ -44,13 +44,19 @@
     {
       "id": "live_smoke",
       "status": "pass",
-      "detail": "ctory-01\",\n        \"Region\": \"test-west\",\n        \"Status\": \"online\",\n        \"Labels\": {\n          \"class\": \"factory\",\n          \"env\": \"prod\"\n        }\n      }\n    ],\n    \"total\": 1,\n    \"waveSize\": 1,\n    \"waves\": 1\n  },\n  \"baselineRollout\": \"rol_5viNDkO85MsTnN\",\n  \"failedRollout\": \"rol_c16LV0UNYETpYe\",\n  \"autoRollback\": true,\n  \"offlineRepair\": true,\n  \"reconnected\": true,\n  \"metrics\": true\n}\n",
+      "detail": "ctory-01\",\n        \"Region\": \"test-west\",\n        \"Status\": \"online\",\n        \"Labels\": {\n          \"class\": \"factory\",\n          \"env\": \"prod\"\n        }\n      }\n    ],\n    \"total\": 1,\n    \"waveSize\": 1,\n    \"waves\": 1\n  },\n  \"baselineRollout\": \"rol_WmyqyFCr9Kagk2\",\n  \"failedRollout\": \"rol_SLPoR_ix4jyNDu\",\n  \"autoRollback\": true,\n  \"offlineRepair\": true,\n  \"reconnected\": true,\n  \"metrics\": true\n}\n",
       "class": "software"
     },
     {
       "id": "backup_restore_drill",
+      "status": "pass",
+      "detail": "PASS restore-drill digest=5614185ce024d7bdf3dc9f5892e34815fbc9ee867ca433e93bc1075bd73c2010\nRecord this hash in evidence/qualification/ops-checklist.md when drilling a real volume.\n",
+      "class": "software"
+    },
+    {
+      "id": "backup_restore_live_volume",
       "status": "skip",
-      "detail": "operator-signed \u2014 evidence/qualification/ops-checklist.md",
+      "detail": "operator-signed \u2014 real PVC/`--data` stop\u2192restore\u2192start; ops-checklist.md",
       "class": "software"
     },
     {

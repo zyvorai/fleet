@@ -15,7 +15,8 @@
 | Test | Result (pass/fail/blocked) | Evidence path |
 |---|---|---|
 | Persistent volume bootstrap | | |
-| Backup and restore | | |
+| Backup and restore (live volume) | | |
+| Backup restore-drill (software) | | `make qualify` / `scripts/restore-drill.sh` |
 | TLS / secure cookies | | |
 | Enrollment token hygiene | | |
 | Offline autonomy (WAN cut) | | |

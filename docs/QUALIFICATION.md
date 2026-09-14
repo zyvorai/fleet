@@ -17,9 +17,12 @@ backup/restore sign-off remain operator-recorded in
 | `build_binaries` | `fleetd`, `fleet-agent`, `fleetctl` build |
 | `live_smoke` | Real control-plane + agent enrollment/offline/reconnect drill |
 | `ota_contract` | Device assignment + contiguous event ACK (`TestOTAContract*`) |
+| `backup_restore_drill` | `scripts/restore-drill.sh` checksum round-trip |
 
-These prove control-plane, agent smoke, and the OTA contract. They do **not**
-prove HA (v0.3 is single-writer), signed artifact policy, or multi-day soak.
+These prove control-plane, agent smoke, the OTA contract, and scripted
+backup/restore integrity. They do **not** prove HA (v0.3 is single-writer),
+signed artifact policy, multi-day soak, or a live PVC stop→restore→start
+(that remains an operator row).
 
 ## Cross-product lab rows (optional evidence)
 
@@ -37,7 +40,7 @@ Recorded on a shared Linux host — see [LAB.md](LAB.md):
 | Test | Required outcome |
 |---|---|
 | Persistent volume bootstrap | State survives restart; admin login works |
-| Backup and restore | Restored state file yields identical sites/revisions |
+| Backup and restore | Restored state file yields identical sites/revisions; record digest from `backup-state.sh` / `restore-drill.sh` |
 | TLS termination | Secure cookies / direct TLS as documented |
 | Enrollment token hygiene | Short-lived, low maxUses; agent drops enroll token after first sync |
 | Offline autonomy | WAN cut during apply; agent reconciling from cache |
