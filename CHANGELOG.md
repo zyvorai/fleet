@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Lab production hardening + signed ops/WAN drills (2026-09-14).
+
 - Signed lab ops checklist (backup/TLS/single-replica); document production maturity.
 
 - GitHub CI lab substitutes: compose smoke, HTTPS TLS smoke, backup/restore,

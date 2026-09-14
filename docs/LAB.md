@@ -13,7 +13,7 @@ This is an evaluation stack, not a multi-replica production control plane.
 |---|---|---|
 | Fleet control plane | `zyvor-fleet.service` | `https://80.79.5.173:18090/` |
 | Fleet site agent | `zyvor-fleet-agent.service` | enrolls against the control plane |
-| Nodra CP (sibling repo) | `nodra-server.service` | `http://80.79.5.173:18447/` |
+| Nodra CP (sibling repo) | `nodra-server.service` | `https://80.79.5.173:18447/` (TLS) |
 | Device Agent (sibling) | `zyvor-device-agent.service` | `http://127.0.0.1:9188` |
 | Zyvor OTA demo (sibling) | `zyvor-otad-demo.service` | Unix socket on the host |
 | relay-edge (sibling) | `relay-edge.service` | `https://80.79.5.173:18086/ui/` |
@@ -21,8 +21,9 @@ This is an evaluation stack, not a multi-replica production control plane.
 `:8080` was already Kryton on this machine — pass `--port 18090` (or another
 free port) to `scripts/deploy-remote.sh`.
 
-Demo login: `admin@zyvor.local` / `zyvor-fleet-demo`. `--demo` is explicit
-and is **not** a production posture ([DEPLOYMENT.md](DEPLOYMENT.md)).
+Demo login: `admin@zyvor.local` / password from `/etc/zyvor-fleet/fleet.env`
+(`ZYVOR_FLEET_ADMIN_PASSWORD`). As of 2026-09-14 the lab unit runs **without**
+`--demo` (`ZYVOR_FLEET_DEMO=0`).
 
 ## Deploy
 

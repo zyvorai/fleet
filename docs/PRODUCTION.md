@@ -15,13 +15,12 @@ production control plane.
 |---|---|
 | Software matrix + CI lab substitutes | green (`make qualify`, compose/TLS/backup CI) |
 | Ops checklist (backup/TLS/single-replica) | **signed** for lab host — [ops-checklist.md](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md) |
-| Production install without `--demo` | **operator** — unset `ZYVOR_FLEET_DEMO`, set admin password + session secret |
+| Production install without `--demo` | **done on lab** — `ZYVOR_FLEET_DEMO=0`, no `--demo` flag |
 | HA / multi-writer | **not available** in v0.3 |
-| WAN-loss / rollout soak | **unsigned** (blocked on checklist) |
+| WAN-loss / rollout soak | **signed** abbreviated WAN drill + `live_smoke` rollback |
 
 **Verdict:** single-writer Fleet is **production-ready** when deployed per this runbook
-(no demo, HTTPS, signed ops checklist on the target host). The shared lab host remains
-an evaluation stack with `--demo`.
+(HTTPS, signed ops checklist). Lab host now matches non-demo ExecStart.
 
 ## Preconditions
 
