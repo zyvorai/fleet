@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- HA design doc (`docs/HA.md`) plus short soak CI harness:
+  `scripts/ci/soak-short.sh`, optional `scripts/ci/soak.sh` /
+  `scripts/ci/soak-check.py`, scheduled `.github/workflows/soak.yml`.
+  These prove single-writer reconnect under WAN/disk pressure — **not**
+  multi-writer HA (still design-only).
+
 - Docs refresh: QUALIFICATION/LAB/FAQ/PRODUCTION reflect signed ops + non-demo
   lab posture; multi-site soak / HA still open.
 

@@ -7,8 +7,8 @@ hero:
 Software rows are automated by `make qualify`. Lab ops rows for host
 `80.79.5.173` are **signed** in
 [`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md)
-(backup/TLS/non-demo/abbreviated WAN). Scheduled CI soak tracking has started;
-multi-day soak and HA remain open — see [HA.md](HA.md).
+(backup/TLS/non-demo/abbreviated WAN). Abbreviated CI soak has **landed**
+(scheduled, single-writer); multi-day soak and HA remain open — see [HA.md](HA.md).
 
 ## Software (host) rows — `make qualify`
 
@@ -51,7 +51,7 @@ Evidence: `ops-checklist.md`, `lab/20260914T155128Z/`, `lab/20260914T162245Z/`.
 | OTA device assignment (simulator lab) | **pass** — see LAB.md |
 | Single-replica discipline | **pass** (signed) |
 | Non-demo ExecStart | **pass** — `ZYVOR_FLEET_DEMO=0` |
-| Abbreviated WAN/disk soak (CI) | **tracking** — `scripts/ci/soak-short.sh` + `.github/workflows/soak.yml` (scheduled, not PR-gated) |
+| Abbreviated WAN/disk soak (CI) | **landed** — `scripts/ci/soak-short.sh` + `.github/workflows/soak.yml` (scheduled, not PR-gated; single-writer) |
 | Multi-site / multi-day WAN soak | **open** — needs self-hosted runner on the lab host |
 | HA / multi-writer | **not available** in v0.3 — design only in [HA.md](HA.md) |
 

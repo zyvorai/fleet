@@ -83,8 +83,9 @@ in-memory rate limiters, and Prometheus scrapes.
 
 | Item | Status |
 |---|---|
-| Abbreviated WAN/disk soak (CI scheduled) | tracking — `scripts/ci/soak-short.sh`, `.github/workflows/soak.yml` |
-| Multi-hour / multi-day soak on lab host | **open** |
+| Abbreviated WAN/disk soak (CI scheduled) | **landed** — `scripts/ci/soak-short.sh`, `.github/workflows/soak.yml` (single-writer reconnect; not HA) |
+| Longer optional soak script | **landed** — `scripts/ci/soak.sh` + `scripts/ci/soak-check.py` (still single-writer; does not close multi-day lab soak) |
+| Multi-hour / multi-day soak on lab host | **open** — needs self-hosted runner |
 | Postgres store adapter | **not started** |
 | Multi-writer / leader-safe rollout coordination | **not started** |
 | Production HA claim | **not available** |
