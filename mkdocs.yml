@@ -49,6 +49,7 @@ nav:
       - Lab: LAB.md
       - Production: PRODUCTION.md
       - Qualification: QUALIFICATION.md
+      - HA design: HA.md
       - Troubleshooting: TROUBLESHOOTING.md
   - Reference:
       - FAQ: FAQ.md

@@ -33,7 +33,8 @@ from proceeding rather than silently marking it done.
 Not supported today — [`docs/DEPLOYMENT.md`](DEPLOYMENT.md#why-one-replica)
 and [`ARCHITECTURE.md`](https://github.com/zyvorai/fleet/blob/main/ARCHITECTURE.md) are explicit that v0.3's
 storage is single-writer; a transactional HA storage adapter is a future
-milestone in [`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md), not present yet.
+milestone sketched in [`docs/HA.md`](HA.md) / [`docs/PRODUCT_PLAN.md`](PRODUCT_PLAN.md),
+not present yet.
 Running two replicas against the same store isn't a supported
 configuration — plan around a single control-plane instance for now.
 

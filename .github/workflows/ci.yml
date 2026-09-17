@@ -116,6 +116,27 @@ jobs:
           chmod +x scripts/ci/backup-restore.sh scripts/backup-state.sh scripts/restore-state.sh
           ./scripts/ci/backup-restore.sh
 
+  soak-short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Abbreviated control-plane soak
+        env:
+          FLEET_SOAK_SECONDS: "30"
+        run: |
+          chmod +x scripts/ci/soak-short.sh
+          ./scripts/ci/soak-short.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: soak-short-evidence
+          path: evidence/qualification/ci/soak-short
+
   container:
     runs-on: ubuntu-latest
     steps:
@@ -128,7 +149,7 @@ jobs:
           tags: zyvor-fleet:ci
 
   suite-ci:
-    needs: [test, helm, compose-smoke, tls-smoke, backup-restore, govulncheck, container]
+    needs: [test, helm, compose-smoke, tls-smoke, backup-restore, soak-short, govulncheck, container]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

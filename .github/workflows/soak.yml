@@ -1,0 +1,55 @@
+name: Soak
+
+on:
+  schedule:
+    # Nightly abbreviated (~10–15m) WAN/disk soak. Multi-day soak remains open
+    # (needs a self-hosted runner on the lab host; hosted runners cap ~6h).
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'soak duration (e.g. 10m, 4h)'
+        default: '10m'
+
+permissions:
+  contents: read
+
+jobs:
+  soak-short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Abbreviated WAN/disk soak
+        env:
+          FLEET_SOAK_DURATION: ${{ github.event.inputs.duration || '10m' }}
+          FLEET_SOAK_WAN_CYCLE: '90s'
+          FLEET_SOAK_WAN_DOWNTIME: '10s'
+          FLEET_SOAK_DISK_CYCLE: '60s'
+          FLEET_SOAK_DISK_TARGET_MB: '128'
+          FLEET_SOAK_SAMPLE_INTERVAL: '5s'
+        run: |
+          chmod +x scripts/ci/soak.sh scripts/ci/soak-short.sh
+          ./scripts/ci/soak-short.sh evidence/qualification/ci/soak-short
+      - name: Hash evidence bundle
+        if: always()
+        run: |
+          mkdir -p evidence/qualification/ci/soak-short
+          find evidence/qualification/ci/soak-short -type f -exec sha256sum {} + \
+            > evidence/qualification/ci/soak-short/digests.txt
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: soak-short-evidence
+          path: evidence/qualification/ci/soak-short
+          retention-days: 90
+      - name: Judge soak criteria
+        if: always()
+        run: python3 scripts/ci/soak-check.py evidence/qualification/ci/soak-short/summary.json

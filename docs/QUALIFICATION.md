@@ -7,7 +7,8 @@ hero:
 Software rows are automated by `make qualify`. Lab ops rows for host
 `80.79.5.173` are **signed** in
 [`evidence/qualification/ops-checklist.md`](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md)
-(backup/TLS/non-demo/abbreviated WAN). Multi-site soak and HA remain open.
+(backup/TLS/non-demo/abbreviated WAN). Scheduled CI soak tracking has started;
+multi-day soak and HA remain open — see [HA.md](HA.md).
 
 ## Software (host) rows — `make qualify`
 
@@ -50,17 +51,21 @@ Evidence: `ops-checklist.md`, `lab/20260914T155128Z/`, `lab/20260914T162245Z/`.
 | OTA device assignment (simulator lab) | **pass** — see LAB.md |
 | Single-replica discipline | **pass** (signed) |
 | Non-demo ExecStart | **pass** — `ZYVOR_FLEET_DEMO=0` |
-| Multi-site / multi-day WAN soak | **open** |
-| HA / multi-writer | **not available** in v0.3 |
+| Abbreviated WAN/disk soak (CI) | **tracking** — `scripts/ci/soak-short.sh` + `.github/workflows/soak.yml` (scheduled, not PR-gated) |
+| Multi-site / multi-day WAN soak | **open** — needs self-hosted runner on the lab host |
+| HA / multi-writer | **not available** in v0.3 — design only in [HA.md](HA.md) |
 
 ## Maturity note
 
 v0.3 does not provide transactional HA storage. Production is one control-plane
-replica with a tested backup. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md) and
-[PRODUCTION.md](PRODUCTION.md).
+replica with a tested backup. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md),
+[PRODUCTION.md](PRODUCTION.md), and [HA.md](HA.md).
 
 ## GitHub CI (lab substitute)
 
 CI runs compose smoke, HTTPS TLS smoke, backup/restore, container build, and
-govulncheck. These complement (do not replace) the signed lab ops checklist.
-CI still does **not** claim HA, multi-site soak, or Minewing device HIL.
+govulncheck. A separate scheduled workflow (`.github/workflows/soak.yml`) runs
+the abbreviated WAN/disk soak (`scripts/ci/soak-short.sh`, judged by
+`scripts/ci/soak-check.py`, ~10–15 minutes). Soak is **not** PR-gated: the
+suite is already heavy, and soak proves single-writer reconnect — not HA.
+CI still does **not** claim HA, multi-day soak, or Minewing device HIL.
