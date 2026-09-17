@@ -27,6 +27,10 @@ jobs:
         run: go vet ./...
       - name: Unit and integration tests
         run: go test -race -coverprofile=coverage.out ./...
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage.out
       - name: Web JavaScript syntax
         run: node --check webui/static/app.js
       - name: Build all binaries
@@ -40,6 +44,28 @@ jobs:
           name: qualification-software
           path: evidence/qualification/software-matrix.json
           if-no-files-found: error
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v4
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Install kubeconform
+        run: go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+      - run: helm lint deploy/helm/zyvor-fleet
+      - name: Helm template + kubeconform
+        run: |
+          helm template fleet deploy/helm/zyvor-fleet \
+            --set image.repository=zyvor-fleet --set image.tag=ci \
+            --set admin.password=ci-admin-password \
+            --set sessionSecret=ci-session-secret-0123456789abcdef \
+            --set persistence.enabled=false \
+            > /tmp/zyvor-fleet.yaml
+          kubeconform -summary -strict /tmp/zyvor-fleet.yaml
 
   govulncheck:
     runs-on: ubuntu-latest
@@ -102,7 +128,7 @@ jobs:
           tags: zyvor-fleet:ci
 
   suite-ci:
-    needs: [test, compose-smoke, tls-smoke, backup-restore, govulncheck, container]
+    needs: [test, helm, compose-smoke, tls-smoke, backup-restore, govulncheck, container]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
