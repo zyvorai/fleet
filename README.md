@@ -150,6 +150,9 @@ git clone https://github.com/zyvorai/fleet.git
 cd fleet
 make check
 make build
+make help          # every target
+make ci            # gofmt, vet, race tests, web syntax, build
+make deploy-remote H=<host> U=sus
 ```
 
 ### Start the control plane for local evaluation
@@ -199,8 +202,9 @@ The agent exchanges the enrollment token for its own high-entropy site credentia
 ```bash
 export ZYVOR_FLEET_ADMIN_PASSWORD='zyvor-fleet-demo'
 
-fleetctl status
+fleetctl status          # colorful logo; needs a running fleetd
 fleetctl status json
+make status              # same, after make build
 fleetctl sites
 fleetctl events
 fleetctl revisions

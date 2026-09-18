@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `fleetctl status` prints the Cilium-style logo, site/rollout health, and feature rows. `fleetctl status json` is the raw dashboard.
+- `make help`, `make ci`, `make status`, and `make deploy-remote H=<host> U=<user>`.
+
 - HA design doc (`docs/HA.md`) plus short soak CI harness:
   `scripts/ci/soak-short.sh`, optional `scripts/ci/soak.sh` /
   `scripts/ci/soak-check.py`, scheduled `.github/workflows/soak.yml`.

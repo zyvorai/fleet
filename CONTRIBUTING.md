@@ -7,7 +7,7 @@ Thanks for improving the open edge control plane.
 Requirements: Go 1.27+ and Node 20+ (Node is used only for JavaScript syntax validation; the product has no npm runtime dependencies).
 
 ```bash
-make check
+make ci
 make build
 ZYVOR_FLEET_ADMIN_PASSWORD=zyvor-fleet-demo \
 ZYVOR_FLEET_SESSION_SECRET=local-demo-session-secret-change-me-1234567890 \
