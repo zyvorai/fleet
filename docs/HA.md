@@ -16,7 +16,7 @@ mode would work. Nothing here is implemented or claimed as production HA.
 | Persistence | Atomic rewrite of a local JSON file (`internal/store`) |
 | Failover | Restore-from-backup onto one new `fleetd` ([PRODUCTION.md](PRODUCTION.md)) |
 | Agents during CP outage | Continue offline autonomy from cached revision; reconnect later |
-| Soak / WAN drills | Single-writer resilience only — [scripts/ci/soak-short.sh](../scripts/ci/soak-short.sh) |
+| Soak / WAN drills | Single-writer resilience only — `scripts/ci/soak-short.sh` |
 
 Running two `fleetd` processes against the same file (or a `ReadWriteMany`
 volume) is **not** a supported HA configuration — it races the store and

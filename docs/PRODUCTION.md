@@ -17,7 +17,7 @@ production control plane.
 | Ops checklist (backup/TLS/single-replica) | **signed** — [ops-checklist.md](https://github.com/zyvorai/fleet/blob/main/evidence/qualification/ops-checklist.md); lab `20260914T155128Z` |
 | Production install without `--demo` | **done on lab** — `ZYVOR_FLEET_DEMO=0`, no `--demo` on ExecStart |
 | Abbreviated WAN + live_smoke rollback | **signed** — `lab/20260914T162245Z/fleet-wan-loss.log` |
-| Abbreviated WAN/disk soak (CI) | **landed** — scheduled `.github/workflows/soak.yml` via [`scripts/ci/soak-short.sh`](../scripts/ci/soak-short.sh) (≤15m); not PR-gated; single-writer only |
+| Abbreviated WAN/disk soak (CI) | **landed** — scheduled `.github/workflows/soak.yml` via `scripts/ci/soak-short.sh` (≤15m); not PR-gated; single-writer only |
 | HA / multi-writer | **not available** in v0.3 — design only in [HA.md](HA.md) |
 | Multi-site / multi-day soak | **open** — needs self-hosted lab runner; hosted GitHub runners cap ~6h |
 
