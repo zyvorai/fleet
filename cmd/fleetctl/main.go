@@ -61,7 +61,11 @@ func main() {
 	}
 	switch cmd {
 	case "status":
-		printReq(c, *server, "GET", "/api/v1/dashboard", nil)
+		if flag.NArg() > 1 && flag.Arg(1) == "json" {
+			printReq(c, *server, "GET", "/api/v1/dashboard", nil)
+		} else {
+			printFleetStatus(c, *server)
+		}
 	case "sites":
 		printReq(c, *server, "GET", "/api/v1/sites", nil)
 	case "events":
@@ -178,7 +182,7 @@ func printReq(c *http.Client, server, method, path string, body any) {
 	}
 }
 func usage() {
-	fmt.Fprintln(os.Stderr, "fleetctl [flags] <version|status|sites|events|audit|revisions|rollouts|groups|webhooks|api-tokens|group-create NAME selector|rollout-plan GROUP_ID|rollout-pause ID|rollout-resume ID|rollout-abort ID|rollout-approve ID|rollout-rollback ID|rollout-retry ID|site-maintenance SITE_ID on|off [reason]|api-token-create NAME ROLE scope[,scope]|enroll-token [name]>")
+	fmt.Fprintln(os.Stderr, "fleetctl [flags] <version|status [json]|sites|events|audit|revisions|rollouts|groups|webhooks|api-tokens|group-create NAME selector|rollout-plan GROUP_ID|rollout-pause ID|rollout-resume ID|rollout-abort ID|rollout-approve ID|rollout-rollback ID|rollout-retry ID|site-maintenance SITE_ID on|off [reason]|api-token-create NAME ROLE scope[,scope]|enroll-token [name]>")
 }
 func fail(err error) { fmt.Fprintln(os.Stderr, "fleetctl:", err); os.Exit(1) }
 func envOr(k, v string) string {
@@ -197,4 +201,65 @@ func parsePairs(s string) map[string]string {
 		}
 	}
 	return out
+}
+
+func getJSON(c *http.Client, server, path string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, strings.TrimRight(server, "/")+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("server returned %d: %s", resp.StatusCode, strings.TrimSpace(string(b)))
+	}
+	return b, nil
+}
+
+func printFleetStatus(c *http.Client, server string) {
+	view := StatusView{Labels: [5]string{"Control plane", "Sites", "Rollouts", "Events", "Regions"}}
+	b, err := getJSON(c, server, "/api/v1/dashboard")
+	if err != nil {
+		for i := range view.Components {
+			view.Components[i].Disabled = true
+		}
+		view.Collection = []string{err.Error()}
+		fmt.Print(view.Format())
+		fail(err)
+	}
+	var dash struct {
+		Sites struct {
+			Total, Online, Degraded, Offline int
+		} `json:"sites"`
+		Regions         map[string]int `json:"regions"`
+		RunningRollouts int            `json:"runningRollouts"`
+		RecentEvents    []any          `json:"recentEvents"`
+	}
+	_ = json.Unmarshal(b, &dash)
+	if dash.Sites.Total == 0 {
+		view.Components[1].Disabled = true
+	} else if dash.Sites.Offline > 0 {
+		view.Components[1].Errors = dash.Sites.Offline
+	} else if dash.Sites.Degraded > 0 {
+		view.Components[1].Warnings = dash.Sites.Degraded
+	}
+	if len(dash.RecentEvents) == 0 {
+		view.Components[3].Warnings = 0
+	}
+	if len(dash.Regions) == 0 {
+		view.Components[4].Disabled = true
+	}
+	view.Body = [][3]string{
+		{"🖥️  Sites:", fmt.Sprintf("%d/%d online", dash.Sites.Online, dash.Sites.Total), ""},
+		{"🚀 Rollouts:", fmt.Sprintf("%d running", dash.RunningRollouts), ""},
+		{"📦 Events:", fmt.Sprintf("%d recent", len(dash.RecentEvents)), ""},
+	}
+	for _, name := range []string{"Sites", "Rollouts", "Groups", "Webhooks", "API tokens", "Enrollment", "Audit", "Events", "Revisions", "Maintenance"} {
+		view.Features = append(view.Features, okFeature(name, true))
+	}
+	fmt.Print(view.Format())
 }

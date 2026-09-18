@@ -200,6 +200,7 @@ The agent exchanges the enrollment token for its own high-entropy site credentia
 export ZYVOR_FLEET_ADMIN_PASSWORD='zyvor-fleet-demo'
 
 fleetctl status
+fleetctl status json
 fleetctl sites
 fleetctl events
 fleetctl revisions

@@ -217,7 +217,8 @@ Everything above has a CLI equivalent, useful for scripting or CI:
 ```bash
 export ZYVOR_FLEET_ADMIN_PASSWORD='zyvor-fleet-demo'
 
-fleetctl status
+fleetctl status          # colorful logo + features
+fleetctl status json     # raw dashboard JSON
 fleetctl sites
 fleetctl events
 fleetctl revisions
