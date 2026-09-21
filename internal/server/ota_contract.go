@@ -30,6 +30,7 @@ func (s *Server) registerOTARoutes(mux *http.ServeMux) {
 	mux.Handle("PUT /api/v1/ota/devices/{device_id}/assignment", s.requireRoles(http.HandlerFunc(s.putOTAAssignment), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("DELETE /api/v1/ota/devices/{device_id}/assignment", s.requireRoles(http.HandlerFunc(s.clearOTAAssignment), model.RoleAdmin, model.RoleOperator))
 	mux.Handle("GET /api/v1/ota/devices/{device_id}/events", s.requireRoles(http.HandlerFunc(s.listOTADeviceEvents), model.RoleAdmin, model.RoleOperator, model.RoleViewer))
+	s.registerOTARolloutRoutes(mux)
 }
 
 func (s *Server) authenticateOTADevice(r *http.Request, deviceID string) bool {
@@ -146,6 +147,8 @@ func (s *Server) otaPostEvents(w http.ResponseWriter, r *http.Request) {
 			acked = last
 		}
 		dev.AckedSeq = acked
+		classifyOTADevice(dev)
+		advanceOTARollouts(st, time.Now().UTC())
 		return nil
 	})
 	if err != nil {
@@ -170,9 +173,13 @@ func (s *Server) listOTADevices(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) createOTADevice(w http.ResponseWriter, r *http.Request) {
 	var in struct {
-		DeviceID string `json:"deviceId"`
-		Name     string `json:"name"`
-		SiteID   string `json:"siteId"`
+		DeviceID         string            `json:"deviceId"`
+		Name             string            `json:"name"`
+		SiteID           string            `json:"siteId"`
+		Labels           map[string]string `json:"labels"`
+		HardwareRevision string            `json:"hardwareRevision"`
+		Slot             string            `json:"slot"`
+		Version          string            `json:"version"`
 	}
 	if err := decodeJSON(r, &in, 16<<10); err != nil {
 		writeError(w, 400, err.Error())
@@ -190,11 +197,17 @@ func (s *Server) createOTADevice(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now().UTC()
 	dev := model.OTADevice{
-		DeviceID:  in.DeviceID,
-		Name:      strings.TrimSpace(in.Name),
-		SiteID:    strings.TrimSpace(in.SiteID),
-		TokenHash: auth.SHA256Token(plain),
-		CreatedAt: now,
+		DeviceID:         in.DeviceID,
+		Name:             strings.TrimSpace(in.Name),
+		SiteID:           strings.TrimSpace(in.SiteID),
+		TokenHash:        auth.SHA256Token(plain),
+		CreatedAt:        now,
+		Labels:           in.Labels,
+		HardwareRevision: strings.TrimSpace(in.HardwareRevision),
+		Slot:             strings.TrimSpace(in.Slot),
+		Version:          strings.TrimSpace(in.Version),
+		Online:           true,
+		Report:           "offline",
 	}
 	err = s.store.Update(func(st *model.State) error {
 		for _, d := range st.OTADevices {
@@ -321,12 +334,18 @@ func (s *Server) listOTADeviceEvents(w http.ResponseWriter, r *http.Request) {
 
 func publicOTADevice(d model.OTADevice) map[string]any {
 	return map[string]any{
-		"deviceId":      d.DeviceID,
-		"name":          d.Name,
-		"siteId":        d.SiteID,
-		"createdAt":     d.CreatedAt,
-		"ackedSequence": d.AckedSeq,
-		"hasAssignment": len(d.Assignment) > 0,
-		"eventCount":    len(d.Events),
+		"deviceId":         d.DeviceID,
+		"name":             d.Name,
+		"siteId":           d.SiteID,
+		"createdAt":        d.CreatedAt,
+		"ackedSequence":    d.AckedSeq,
+		"hasAssignment":    len(d.Assignment) > 0,
+		"eventCount":       len(d.Events),
+		"labels":           d.Labels,
+		"hardwareRevision": d.HardwareRevision,
+		"slot":             d.Slot,
+		"version":          d.Version,
+		"report":           d.Report,
+		"online":           d.Online,
 	}
 }

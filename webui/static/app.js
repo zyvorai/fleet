@@ -39,6 +39,7 @@
     overview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
     sites:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 17h16M7 4v6m10-6v6M7 14v6m10-6v6"/><circle cx="7" cy="7" r="3"/><circle cx="17" cy="17" r="3"/></svg>',
     rollouts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h12m-4-4 4 4-4 4"/><path d="M5 5h5M5 19h5"/></svg>',
+    ota:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12h16M8 7l-4 5 4 5M16 7l4 5-4 5"/></svg>',
     events:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/></svg>',
     settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.94 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.52-1H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06A1.7 1.7 0 0 0 8.97 4.6 1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.06 1.52 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.83 7l-.06.06a1.7 1.7 0 0 0-.37 1.88A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>',
     menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
@@ -160,7 +161,7 @@
   }
 
   function shell() {
-    const nav = [['overview','Overview'],['sites','Sites'],['rollouts','Rollouts'],['events','Events'],['settings','Settings']];
+    const nav = [['overview','Overview'],['sites','Sites'],['rollouts','Rollouts'],['ota','Gateways'],['events','Events'],['settings','Settings']];
     app.innerHTML = `
       <div class="shell ${sidebarCollapsed()?'collapsed':''}">
         <div class="sidebar-backdrop" id="sidebar-backdrop" data-action="menu"></div>
@@ -183,7 +184,7 @@
   function cap(s){return s.slice(0,1).toUpperCase()+s.slice(1)}
 
   async function navigate(route) {
-    if (!['overview','sites','rollouts','events','settings'].includes(route)) route='overview';
+    if (!['overview','sites','rollouts','ota','events','settings'].includes(route)) route='overview';
     state.route=route; location.hash=route;
     document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.route===route));
     const crumb=document.querySelector('.crumb strong'); if(crumb)crumb.textContent=cap(route);
@@ -195,6 +196,7 @@
     if (route==='overview') return renderOverview();
     if (route==='sites') return renderSites();
     if (route==='rollouts') return renderRollouts();
+    if (route==='ota') return renderOTA();
     if (route==='events') return renderEvents();
     if (route==='settings') return renderSettings();
   }
@@ -237,6 +239,16 @@
       <div class="section-title">Revisions</div><section class="revision-grid">${revisions.length?revisions.slice().reverse().map(revisionCard).join(''):'<div class="empty"><strong>No desired-state revisions</strong>A revision can contain systemd, container, K3s and QEMU workload declarations.</div>'}</section>`}
   function rolloutCard(r){const p=progress(r);const failed=r.failedSites?.length||0;const controls=[];if(['running','scheduled'].includes(r.status))controls.push(`<button class="link-btn" data-action="rollout-pause" data-rollout="${escapeHTML(r.id)}">Pause</button>`);if(r.status==='paused')controls.push(`<button class="link-btn" data-action="rollout-resume" data-rollout="${escapeHTML(r.id)}">Resume</button>`);if(r.status==='pending_approval'&&state.user.role==='admin')controls.push(`<button class="link-btn" data-action="rollout-approve" data-rollout="${escapeHTML(r.id)}">Approve</button>`);if(r.status==='failed')controls.push(`<button class="link-btn" data-action="rollout-retry" data-rollout="${escapeHTML(r.id)}">Retry</button>`);if(!['completed','completed_with_failures','failed','aborted','rolled_back','expired'].includes(r.status))controls.push(`<button class="link-btn danger-link" data-action="rollout-abort" data-rollout="${escapeHTML(r.id)}">Abort</button>`);const canRollback=r.previousRevisions&&Object.keys(r.previousRevisions).length&&Object.values(r.previousRevisions).every(Boolean);if(canRollback)controls.push(`<button class="link-btn" data-action="rollout-rollback" data-rollout="${escapeHTML(r.id)}">Rollback</button>`);return `<article class="rollout-card"><div class="card-head"><span class="tag">${escapeHTML(r.status.replaceAll('_',' '))}</span><span class="tiny">wave ${r.currentWave||0} · max failures ${r.maxFailures??0}</span></div><h3>${escapeHTML(r.name)}</h3><div class="muted tiny mono">${escapeHTML(shortID(r.revisionId))}</div><div class="cap-list rollout-flags">${r.autoRollback?'<span class="tag">auto rollback</span>':''}${r.approvalRequired?'<span class="tag">approval</span>':''}${r.pauseSeconds?`<span class="tag">${r.pauseSeconds}s pause</span>`:''}${failed?`<span class="tag danger-tag">${failed} failed</span>`:''}</div><div class="progress"><i style="width:${p}%"></i></div><div class="card-head"><span class="tiny">${r.completedSites?.length||0} / ${r.siteIds?.length||0} sites</span><strong>${p}%</strong></div>${controls.length?`<div class="rollout-actions">${controls.join('')}</div>`:''}</article>`}
   function revisionCard(r){return `<article class="revision-card"><div class="card-head"><span class="tag">${r.workloads?.length||0} workloads</span><span class="tiny">${relativeTime(r.createdAt)}</span></div><h3>${escapeHTML(r.name)}</h3><p class="muted tiny">${escapeHTML(r.notes||'No release notes')}</p><div class="cap-list">${(r.workloads||[]).map(w=>`<span class="tag">${escapeHTML(w.kind)} · ${escapeHTML(w.name)}</span>`).join('')}</div></article>`}
+
+  async function renderOTA() {
+    const [devices, rollouts] = await Promise.all([api('/api/v1/ota/devices'), api('/api/v1/ota/rollouts')]);
+    const list = Array.isArray(rollouts) ? rollouts : (rollouts.rollouts || []);
+    const hero = (rollouts && rollouts.hero) || 'Can I safely update 10,000 remote gateways tonight?';
+    const content = document.getElementById('content');
+    const rows = (devices || []).map(d => `<div class="event-row"><div class="event-text"><strong>${escapeHTML(d.name || d.deviceId)}</strong><small>${escapeHTML(d.deviceId)} · ${escapeHTML(d.slot || 'slot ?')} · ${escapeHTML(d.version || 'version ?')} · ${escapeHTML(d.report || 'unknown')}</small></div></div>`).join('');
+    const cards = list.map(r => `<article class="revision-card"><h3>${escapeHTML(r.name || r.id)}</h3><p class="muted tiny">${escapeHTML(r.status)} · ${(r.completed || []).length}/${(r.deviceIds || []).length}${r.pausedReason ? ' · ' + escapeHTML(r.pausedReason) : ''}</p></article>`).join('');
+    content.innerHTML = `<div class="page-head"><div><div class="page-kicker">Edge OS</div><h1>${escapeHTML(hero)}</h1><p>Canary first, then waves. The agent still verifies every release. A paused rollout is a stop, not a success.</p></div></div><div class="section-title">Rollouts</div><section class="rollout-grid">${cards || '<div class="empty"><strong>No gateway rollouts yet</strong>Create one from the API when a signed assignment is ready.</div>'}</section><div class="section-title">Devices</div><div class="card card-pad">${rows || '<span class="muted tiny">No OTA devices enrolled.</span>'}</div>`;
+  }
 
   async function renderEvents(){state.events=await api('/api/v1/events?limit=250');const content=document.getElementById('content');content.innerHTML=`<div class="page-head"><div><div class="page-kicker">Audit the edge</div><h1>Events</h1><p>Connectivity, enrollment, rollout and local-agent events remain visible after sites reconnect.</p></div></div><div class="card card-pad">${eventList(state.events)}</div>`}
 

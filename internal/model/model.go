@@ -246,14 +246,60 @@ type Command struct {
 // OTADevice is a Zyvor OTA agent identity bound to a bearer token digest.
 // See docs/OTA_CONTRACT.md (matches zyvor-ota docs/FLEET.md).
 type OTADevice struct {
-	DeviceID   string           `json:"deviceId"`
-	Name       string           `json:"name,omitempty"`
-	SiteID     string           `json:"siteId,omitempty"`
-	TokenHash  string           `json:"tokenHash"`
-	CreatedAt  time.Time        `json:"createdAt"`
-	Assignment json.RawMessage  `json:"assignment,omitempty"`
-	AckedSeq   uint64           `json:"ackedSequence"`
-	Events     []OTADeviceEvent `json:"events,omitempty"`
+	DeviceID         string            `json:"deviceId"`
+	Name             string            `json:"name,omitempty"`
+	SiteID           string            `json:"siteId,omitempty"`
+	TokenHash        string            `json:"tokenHash"`
+	CreatedAt        time.Time         `json:"createdAt"`
+	Assignment       json.RawMessage   `json:"assignment,omitempty"`
+	AckedSeq         uint64            `json:"ackedSequence"`
+	Events           []OTADeviceEvent  `json:"events,omitempty"`
+	Labels           map[string]string `json:"labels,omitempty"`
+	HardwareRevision string            `json:"hardwareRevision,omitempty"`
+	Slot             string            `json:"slot,omitempty"`
+	Version          string            `json:"version,omitempty"`
+	CohortID         string            `json:"cohortId,omitempty"`
+	Online           bool              `json:"online,omitempty"`
+	Report           string            `json:"report,omitempty"`
+	LastEventAt      time.Time         `json:"lastEventAt,omitempty"`
+}
+
+// OTACohort selects devices by id and labels for a rollout.
+type OTACohort struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Selector  map[string]string `json:"selector,omitempty"`
+	DeviceIDs []string          `json:"deviceIds,omitempty"`
+	CreatedAt time.Time         `json:"createdAt"`
+}
+
+// OTARollout assigns one signed release across a device cohort in canary then waves.
+// Policy stays here. The agent still verifies and installs each assignment.
+type OTARollout struct {
+	ID           string          `json:"id"`
+	Name         string          `json:"name"`
+	CohortID     string          `json:"cohortId,omitempty"`
+	Assignment   json.RawMessage `json:"assignment"`
+	Status       string          `json:"status"`
+	CanaryCount  int             `json:"canaryCount"`
+	WaveSize     int             `json:"waveSize"`
+	MaxFailures  int             `json:"maxFailures"`
+	MaxRollbacks int             `json:"maxRollbacks"`
+	MaxOffline   int             `json:"maxOffline"`
+	WindowStart  string          `json:"windowStart,omitempty"`
+	WindowEnd    string          `json:"windowEnd,omitempty"`
+	Timezone     string          `json:"timezone,omitempty"`
+	DeviceIDs    []string        `json:"deviceIds"`
+	CurrentWave  int             `json:"currentWave"`
+	Activated    []string        `json:"activated,omitempty"`
+	Completed    []string        `json:"completed,omitempty"`
+	Failed       []string        `json:"failed,omitempty"`
+	RolledBack   []string        `json:"rolledBack,omitempty"`
+	Offline      []string        `json:"offline,omitempty"`
+	Deferred     []string        `json:"deferred,omitempty"`
+	PausedReason string          `json:"pausedReason,omitempty"`
+	CreatedAt    time.Time       `json:"createdAt"`
+	UpdatedAt    time.Time       `json:"updatedAt"`
 }
 
 // OTADeviceEvent is one OTA agent outbox event retained for Fleet consumption.
@@ -281,4 +327,6 @@ type State struct {
 	Commands         []Command         `json:"commands"`
 	Integrations     []Integration     `json:"integrations"`
 	OTADevices       []OTADevice       `json:"otaDevices,omitempty"`
+	OTACohorts       []OTACohort       `json:"otaCohorts,omitempty"`
+	OTARollouts      []OTARollout      `json:"otaRollouts,omitempty"`
 }
