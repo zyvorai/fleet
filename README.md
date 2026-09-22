@@ -1,24 +1,17 @@
-<div align="center">
+# Fleet
 
-# Zyvor Fleet
-
-### Every site. Still running.
-
-**Offline-first edge fleet control plane for Linux, Kubernetes, containers and virtual machines.**
-
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![CI](https://github.com/zyvorai/fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/fleet/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.27%2B-00ADD8.svg)](go.mod)
+[![Version](https://img.shields.io/badge/version-0.3-informational)](docs/PRODUCT_PLAN.md)
 
-[Is this for you?](#is-this-for-you) · [Quick start](#quick-start) · [Tutorial](docs/TUTORIAL.md) · [Architecture](#architecture) · [Offline autonomy](#offline-autonomy) · [Runtime adapters](#runtime-adapters) · [Kubernetes](#kubernetes) · [Security](#security) · [Docs](#documentation)
+![Fleet — every site still running](docs/social/fleet-share-card.png)
 
-</div>
+**Every site. Still running.**
 
----
+📖 **[Read the full docs](https://zyvorai.github.io/fleet/)** — tutorial, deployment, runtime adapters, and production runbooks.
 
-Zyvor Fleet manages **remote sites as a fleet**, not merely clusters. A site can be a factory gateway, retail server, telecom POP, branch appliance, rugged Linux box, k3s node, GPU edge server or KVM host.
-
-The control plane declares what should run. A small `fleet-agent` pulls that desired state, caches the complete revision locally and keeps reconciling it when the WAN disappears. The agent exposes no arbitrary remote shell.
+Offline-first edge fleet control plane for Linux, Kubernetes, containers and virtual machines. The control plane declares what should run. A small `fleet-agent` pulls that desired state, caches the complete revision locally, and keeps reconciling it when the WAN disappears — with no arbitrary remote shell.
 
 ```text
                        ZYVOR FLEET CONTROL PLANE
@@ -37,6 +30,20 @@ The control plane declares what should run. A small `fleet-agent` pulls that des
         WAN down? Each agent continues from its cached desired revision.
 ```
 
+## Contents
+
+- [Why this is a separate Zyvor product](#why-this-is-a-separate-zyvor-product)
+- [Is this for you?](#is-this-for-you)
+- [Capabilities](#capabilities)
+- [Quick start](#quick-start)
+- [Desired-state example](#desired-state-example)
+- [Offline autonomy](#offline-autonomy)
+- [Architecture](#architecture)
+- [Kubernetes](#kubernetes)
+- [Security](#security)
+- [Documentation](#documentation)
+- [License](#license)
+
 ## Why this is a separate Zyvor product
 
 Zyvor already has strong point products. Fleet is the **site lifecycle and desired-state layer** that connects them.
@@ -50,96 +57,60 @@ Zyvor already has strong point products. Fleet is the **site lifecycle and desir
 | **Forge** | GPU/inference operations | Optional edge AI plane |
 | **HyperCluster** | Kubernetes cluster lifecycle | Fleet can coordinate site-level promotion |
 | **IronWolf** | Bare-metal lifecycle | Fleet can represent/target the resulting sites |
-| **Zeus OS / Machina** | VM operations | Fleet handles cross-site desired-state rollout, not deep VM management |
+| **Zeus OS / Machina** | VM operations | Fleet handles cross-site desired-state rollout |
 
 Fleet intentionally does **not** reimplement Nodra's device/event data plane or Fabric's private-cloud VM control plane.
 
 ## Is this for you?
 
-Zyvor Fleet is a small, open-source (Apache-2.0) site lifecycle/desired-state
-control plane: it declares what should run across systemd/container/k3s/QEMU
-targets, and a small on-site agent keeps reconciling that state — including
-fully offline — with no arbitrary remote shell. It's not a data/event plane
-(that's Nodra), not a general-purpose config management tool, and not a
-cloud-vendor device registry.
+Zyvor Fleet is a small, open-source (Apache-2.0) site lifecycle/desired-state control plane: declare what should run across systemd/container/k3s/QEMU targets, and a small on-site agent keeps reconciling — including fully offline — with no arbitrary remote shell. It is not a data/event plane (that's Nodra), not a general-purpose config management tool, and not a cloud-vendor device registry.
 
 | | **Zyvor Fleet** | balena | Azure IoT Hub Device Mgmt | AWS IoT Device Mgmt | Rancher/Fleet (k8s) | Ansible/SaltStack |
 |---|---|---|---|---|---|---|
-| Primary scope | Cross-runtime site desired-state + offline reconciliation | Container fleet + OTA, via balenaCloud | Cloud device twin/management | Cloud device fleet indexing/jobs | Kubernetes cluster/app fleet only | Generic config push, no offline reconciliation loop |
-| Runtime targets | systemd, container (Docker/Podman), k3s, QEMU/KVM | balenaOS containers only | Whatever you build against the SDK | Whatever you build against the SDK | Kubernetes only | Anything reachable over SSH/agent |
-| Offline autonomy | First-class — agent caches the full desired revision and keeps reconciling through WAN loss | Limited — designed around continuous balenaCloud connectivity | Requires connectivity for management ops | Requires connectivity for management ops | Requires API server reachability | Push-based; no continuous offline reconciliation |
-| Cloud dependency | None required | balenaCloud (proprietary) | Azure IoT Hub | AWS IoT Core | Kubernetes API server (self-hostable) | None, but no fleet control plane either |
-| License | Apache-2.0 | Apache-2.0 agent + proprietary balenaCloud | Proprietary (free tier) | Proprietary (free tier) | Apache-2.0 | Open-source core + commercial tiers |
-| HA control plane | Not yet — v0.3 is intentionally single-writer, see below | balenaCloud (managed) | Managed by Azure | Managed by AWS | Kubernetes-native HA | N/A (no central state store) |
+| Primary scope | Cross-runtime site desired-state + offline reconciliation | Container fleet + OTA via balenaCloud | Cloud device twin/management | Cloud device fleet indexing/jobs | Kubernetes cluster/app fleet only | Generic config push, no offline reconciliation loop |
+| Runtime targets | systemd, container (Docker/Podman), k3s, QEMU/KVM | balenaOS containers only | SDK-built | SDK-built | Kubernetes only | Anything reachable over SSH/agent |
+| Offline autonomy | First-class — agent caches the full desired revision | Limited — designed around balenaCloud connectivity | Requires connectivity | Requires connectivity | Requires API server reachability | Push-based; no continuous offline loop |
+| Cloud dependency | None required | balenaCloud (proprietary) | Azure IoT Hub | AWS IoT Core | Kubernetes API (self-hostable) | None, but no fleet control plane |
+| License | Apache-2.0 | Apache-2.0 agent + proprietary cloud | Proprietary | Proprietary | Apache-2.0 | Open-source core + commercial tiers |
+| HA control plane | Not yet — v0.3 is single-writer | Managed | Managed | Managed | Kubernetes-native HA | N/A |
 
-*(General characterizations as of writing — verify current features against
-each project's own docs.)*
+*(General characterizations as of writing — verify against each project's own docs.)*
 
-**Maturity, stated honestly**: current release is v0.3. `ARCHITECTURE.md`
-is explicit that the control plane is single-writer today — "v0.3 does not
-pretend that a local file store is horizontally scalable." A real
-transactional HA storage adapter is listed in
-[`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) as a **future** milestone,
-alongside signed artifacts, agent OTA, and air-gap OCI bundles — not
-present yet.
+> **Maturity (honest):** v0.3 is a serious single-writer release. A transactional HA storage adapter is a **future** milestone ([docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md)), alongside signed artifacts, agent OTA, and air-gap OCI bundles — not present yet. Device Agent and OTA contract surfaces are real (see below). Nodra relationship remains architectural — no code integration in this repository today.
 
-**Device Agent integration is real, not aspirational**: an opt-in
-`-device-agent-url` flag merges Zyvor Device Agent's namespaced hardware
-metadata into fleet-agent heartbeats (deliberately excluding fields that
-use a different taxonomy than Fleet's own); failure to reach it never
-blocks a heartbeat. **Zyvor OTA integration is real on the contract
-surface**: Fleet serves `/v1/devices/{id}/assignment` and `/events` with
-digest-bound device tokens ([docs/OTA_CONTRACT.md](docs/OTA_CONTRACT.md)).
-The Nodra relationship above remains architectural/roadmap positioning —
-there is no code integration between Fleet and Nodra in this repository
-today.
+**Integrations that ship today**
 
-New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
-production-readiness questions; [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
-covers real operational issues with their documented fix.
+- **Device Agent** — opt-in `-device-agent-url` merges namespaced hardware metadata into heartbeats; failure never blocks a heartbeat.
+- **Zyvor OTA** — `/v1/devices/{id}/assignment` and `/events` with digest-bound device tokens ([docs/OTA_CONTRACT.md](docs/OTA_CONTRACT.md)).
 
-## Features
+New here? [`docs/FAQ.md`](docs/FAQ.md) · [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
 
-### Fleet control plane
+## Capabilities
 
-- Apple-inspired, Zyvor orange/black embedded web console; no CDN, trackers, external fonts or npm runtime.
-- Secure email/password login with PBKDF2-HMAC-SHA256 password hashes.
-- Signed, HttpOnly, SameSite session cookies and role-based API authorization.
-- One-time/restricted enrollment tokens exchanged for independent per-site identities.
-- Live fleet inventory: OS, architecture, CPU, memory, addresses, detected runtimes and capabilities.
-- Site maintenance/cordon mode that excludes serviced sites from new rollouts by default.
-- Scoped bearer API tokens for CI/GitOps automation without shared human credentials.
-- Signed outgoing webhooks with durable cursors plus a bounded operator/API mutation audit trail.
-- Automatic online/degraded/offline state, per-workload health and operational event stream.
-- Declarative revisions with typed workload specs.
-- Dynamic label-based site groups and pre-flight rollout plans.
-- Strict wave rollouts with approval, scheduling windows, inter-wave pause, failure budgets, pause/resume/abort/retry and manual/automatic rollback.
-- Prometheus-format `/metrics` endpoint.
-- Single-writer atomic JSON persistence for the initial open-source release.
-- Embedded UI + API in one `fleetd` binary.
-- Health/readiness endpoints and structured JSON logging.
+### Control plane
+
+- Embedded Zyvor console (no CDN) · email/password + PBKDF2 · signed HttpOnly sessions · RBAC
+- Enrollment tokens → independent per-site identities
+- Live inventory, site cordons, scoped API tokens, HMAC-signed webhooks, bounded audit trail
+- Declarative revisions, dynamic label groups, strict wave rollouts (approval, windows, failure budgets, pause/resume/abort/retry, rollback)
+- Prometheus `/metrics` · single-writer atomic JSON persistence · one `fleetd` binary
 
 ### Offline-first agent
 
-- Pull-based control flow: edge sites need no inbound management port.
-- Complete desired revision cached on local disk with `0600` permissions.
-- Local reconciling continues when the control plane cannot be reached.
-- Connectivity transition events are queued locally and replayed after reconnect.
-- Bounded local event queue.
-- Runtime/capability discovery.
-- Per-site bearer identity stored locally rather than reusing the enrollment token.
-- No generic server-triggered shell execution.
+- Pull-based: no inbound management port on the site
+- Complete desired revision cached locally (`0600`)
+- Local reconciling continues through WAN loss; events queue and replay
+- Per-site bearer identity (enrollment token is not reused)
+- No generic server-triggered shell
 
 ### Typed runtime adapters
 
 | Kind | Behavior | Safety boundary |
 |---|---|---|
 | `systemd` | Start/stop a named unit | Validated unit name; `systemctl` only |
-| `container` | Run/replace/stop Docker or Podman containers | Validated name; declared image/env/ports/args only |
-| `k3s` | Atomically maintain a manifest in the k3s manifests directory | Validated workload name; explicit manifest content |
+| `container` | Run/replace/stop Docker or Podman | Declared image/env/ports/args only |
+| `k3s` | Atomically maintain a k3s manifest | Validated name; explicit manifest content |
 | `qemu` | Start/stop a basic KVM/QEMU VM | Disabled by default; absolute disk path required |
-
-The container adapter fingerprints image, args, environment and ports and replaces any drifted managed container. The k3s adapter continuously restores the declared manifest while skipping unchanged writes. This makes cached desired state useful during real WAN loss rather than functioning as a passive snapshot.
 
 ## Quick start
 
@@ -148,14 +119,10 @@ Requirements: Go 1.27+.
 ```bash
 git clone https://github.com/zyvorai/fleet.git
 cd fleet
-make check
-make build
-make help          # every target
-make ci            # gofmt, vet, race tests, web syntax, build
-make deploy-remote H=<host> U=sus
+make check && make build
 ```
 
-### Start the control plane for local evaluation
+### Start the control plane
 
 ```bash
 export ZYVOR_FLEET_ADMIN_PASSWORD='zyvor-fleet-demo'
@@ -164,26 +131,9 @@ export ZYVOR_FLEET_SESSION_SECRET='local-demo-session-secret-change-me-123456789
 ./bin/fleetd --demo
 ```
 
-Open **http://127.0.0.1:8080**.
-
-Demo login:
-
-```text
-admin@zyvor.local
-zyvor-fleet-demo
-```
-
-Demo enrollment token printed at startup:
-
-```text
-zf_enroll_demo-local-only
-```
-
-`--demo` is explicit and is not intended for production.
+Open **http://127.0.0.1:8080** — `admin@zyvor.local` / `zyvor-fleet-demo`. Demo enrollment token: `zf_enroll_demo-local-only`. `--demo` is not for production.
 
 ### Enroll a site
-
-On another Linux machine:
 
 ```bash
 export ZYVOR_FLEET_ENROLLMENT_TOKEN='zf_enroll_demo-local-only'
@@ -195,45 +145,29 @@ export ZYVOR_FLEET_ENROLLMENT_TOKEN='zf_enroll_demo-local-only'
   --labels class=factory,tier=production
 ```
 
-The agent exchanges the enrollment token for its own high-entropy site credential, stores it locally, reports inventory and begins pull-based sync.
-
 ### CLI
 
 ```bash
-export ZYVOR_FLEET_ADMIN_PASSWORD='zyvor-fleet-demo'
-
 fleetctl status          # colorful logo; needs a running fleetd
 fleetctl status json
-make status              # same, after make build
-fleetctl sites
-fleetctl events
-fleetctl revisions
-fleetctl rollouts
-fleetctl groups
+fleetctl sites | events | revisions | rollouts | groups | audit | webhooks
 fleetctl group-create "Production" env=production,class=factory
 fleetctl rollout-plan GROUP_ID
-fleetctl rollout-pause ROLLOUT_ID
 fleetctl site-maintenance SITE_ID on "scheduled service"
 fleetctl api-token-create github-ci operator read,rollouts:write
-fleetctl audit
-fleetctl webhooks
 fleetctl enroll-token "Factory install"
 ```
 
-## Desired-state example
+Guided walkthrough: [docs/TUTORIAL.md](docs/TUTORIAL.md).
 
-A revision can combine multiple runtime types:
+## Desired-state example
 
 ```json
 {
   "name": "Factory stack 2026.09",
   "notes": "Promote edge API and maintain time sync",
   "workloads": [
-    {
-      "kind": "systemd",
-      "name": "chronyd",
-      "state": "running"
-    },
+    {"kind": "systemd", "name": "chronyd", "state": "running"},
     {
       "kind": "container",
       "name": "edge-api",
@@ -251,28 +185,15 @@ A revision can combine multiple runtime types:
 }
 ```
 
-Create the revision in the UI, target explicit sites or a dynamic group, preview the rollout plan, set wave/failure/approval/window policy and start the rollout. A strict wave does not advance until every site in the active wave has reported success or failure; health failures count against the configured failure budget.
+Create the revision in the UI, target sites or a dynamic group, preview the rollout plan, set wave/failure/approval/window policy and start. A strict wave does not advance until every site in the active wave has reported success or failure.
 
 ## Offline autonomy
 
-The edge state file stores:
-
-```text
-site identity
-agent credential
-desired revision ID
-complete cached revision
-last applied revision
-connectivity state
-queued operational events
-last successful sync
-```
-
 When sync fails:
 
-1. The agent marks the local connectivity transition once.
+1. The agent marks the connectivity transition once.
 2. The cached revision remains authoritative locally.
-3. Typed runtime adapters continue drift reconciliation.
+3. Typed adapters continue drift reconciliation.
 4. Events stay on disk.
 5. When the control plane returns, queued events replay through the next heartbeat.
 6. Any newer desired revision is then reconciled.
@@ -287,40 +208,29 @@ Browser
    ▼
 ┌──────────────────────────────────────────────┐
 │ fleetd                                       │
-│                                              │
-│ embedded web UI ─┐                           │
-│ REST API ────────┼─ auth / RBAC             │
-│ rollout engine ──┼─ single-writer store     │
-│ event stream ────┘                           │
+│ embedded web UI · REST API · rollout engine  │
+│ auth / RBAC · single-writer store            │
 └──────────────────┬───────────────────────────┘
                    │ outbound pull from sites
          ┌─────────┴─────────┐
          ▼                   ▼
     fleet-agent          fleet-agent
-    local state          local state
-         │                   │
- typed adapters         typed adapters
- systemd/container      k3s/qemu/...
+    typed adapters       typed adapters
 ```
 
-The initial open-source persistence mode is deliberately honest: it is a **single-writer control plane**. Kubernetes manifests therefore deploy one control-plane replica with a `ReadWriteOnce` volume. A transactional HA storage adapter is a later milestone; v0.3 does not pretend that a local file store is horizontally scalable.
+v0.3 is deliberately a **single-writer** control plane. Kubernetes deploys one replica with a `ReadWriteOnce` volume. HA storage is a later milestone.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the protocol and failure model. See [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md) for maintenance cordons, API-token scopes, webhook signing and audit semantics.
+See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md).
 
 ## Kubernetes
-
-### Helm
 
 ```bash
 helm upgrade --install zyvor-fleet ./deploy/helm/zyvor-fleet \
   --namespace zyvor-fleet --create-namespace \
   --set admin.password='CHANGE_ME' \
   --set sessionSecret="$(openssl rand -base64 48)"
-```
 
-Enable an in-cluster node agent only when that deployment model is appropriate:
-
-```bash
+# Optional in-cluster node agent
 helm upgrade --install zyvor-fleet ./deploy/helm/zyvor-fleet \
   --namespace zyvor-fleet --create-namespace \
   --set admin.password='CHANGE_ME' \
@@ -329,85 +239,53 @@ helm upgrade --install zyvor-fleet ./deploy/helm/zyvor-fleet \
   --set agent.enrollmentToken='YOUR_TOKEN'
 ```
 
-For ordinary remote edge boxes, install `fleet-agent` directly on the site rather than running it as a Kubernetes DaemonSet.
+Ordinary remote edge boxes: install `fleet-agent` on the site, not as a DaemonSet. Raw manifests: `kubectl apply -k deploy/kubernetes` (copy `secret.example.yaml` first).
 
-### Raw manifests
-
-Copy `deploy/kubernetes/secret.example.yaml`, replace both secret values, then:
-
-```bash
-kubectl apply -k deploy/kubernetes
-```
-
-## Containers
-
-```bash
-docker compose up --build
-```
-
-The compose demo starts the control plane plus two simulated Linux sites. It is useful for the fleet UX and protocol; containerized demo agents do not manage the Docker host unless you intentionally grant host-level runtime access.
+Compose demo: `docker compose up --build` (control plane + two simulated sites).
 
 ## Security
 
-Important defaults:
+- Explicit admin password for production bootstrap; session secret 32+ bytes
+- HttpOnly + SameSite Strict cookies; scoped bearer tokens as SHA-256 digests only
+- HMAC-SHA256 signed webhooks; bounded audit trail without request bodies
+- State files `0600`; login throttling; CSP denies third-party scripts
+- No arbitrary shell workload type; QEMU opt-in (`ZYVOR_FLEET_ALLOW_QEMU=1`)
 
-- production bootstrap requires an explicit admin password;
-- session secret must be 32+ bytes for stable production sessions;
-- cookie sessions are HttpOnly + SameSite Strict;
-- browser-session API mutations use a same-origin marker; bearer API tokens are CSRF-independent Authorization credentials;
-- scoped API, enrollment and site-agent bearer tokens are persisted only as SHA-256 digests centrally;
-- outgoing webhooks are HMAC-SHA256 signed and expose delivery health without exposing their signing secret through list APIs;
-- operator/API mutations are recorded in a bounded audit trail without request bodies;
-- state files are mode `0600`;
-- login attempts are throttled;
-- CSP denies third-party scripts/styles/connections;
-- arbitrary shell is not a supported command type;
-- QEMU control is opt-in (`ZYVOR_FLEET_ALLOW_QEMU=1`).
-
-For production, use TLS directly or through a trusted ingress/reverse proxy. See [SECURITY.md](SECURITY.md).
+See [SECURITY.md](SECURITY.md).
 
 ## Product plan
 
-**v0.2** added dynamic groups, rollout pre-flight planning, strict waves, approval and maintenance windows, failure budgets, health gates, automatic/manual rollback, retry controls, site metadata, metrics, stronger session revocation, durable fsync writes and stronger offline drift detection.
-
-**v0.3 — included here** adds site maintenance/cordon mode, scoped API tokens for CI/GitOps, HMAC-signed outgoing webhooks and a bounded mutation audit trail. See [docs/V0.3_OPERATIONS.md](docs/V0.3_OPERATIONS.md).
-
-Next milestones are documented in [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md): signed artifacts, agent OTA, air-gap OCI bundles, enterprise identity/integrations and a real transactional HA storage adapter.
+**v0.3** ships site cordons, scoped API tokens, signed webhooks, and a bounded audit trail. Next: signed artifacts, agent OTA, air-gap OCI bundles, enterprise identity, transactional HA storage — [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md).
 
 ## Documentation
 
-- [FAQ](docs/FAQ.md) — licensing, support, production-readiness questions
-- [Troubleshooting](docs/TROUBLESHOOTING.md) — real operational issues, with the fix
-- [Tutorial: getting started](docs/TUTORIAL.md) — a guided walkthrough of the web console and CLI, start to first rollout
-- [Lab stack](docs/LAB.md) — deploy with TLS, wire Zyvor OTA / Device Agent
-- [OTA contract](docs/OTA_CONTRACT.md) — device assignment + contiguous event ACK
-- [Architecture and failure model](ARCHITECTURE.md)
-- [Product plan](docs/PRODUCT_PLAN.md)
-- [Deployment guide](docs/DEPLOYMENT.md)
-- [Production](docs/PRODUCTION.md) · [Qualification](docs/QUALIFICATION.md)
-- [Runtime adapters](docs/RUNTIME_ADAPTERS.md)
-- [REST API / OpenAPI](docs/openapi.yaml)
-- [Security](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
+| Doc | Topic |
+|---|---|
+| [zyvorai.github.io/fleet](https://zyvorai.github.io/fleet/) | Product docs |
+| [docs/TUTORIAL.md](docs/TUTORIAL.md) | Guided first rollout |
+| [docs/FAQ.md](docs/FAQ.md) | Licensing, support, readiness |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Systemd, Compose, Helm |
+| [docs/RUNTIME_ADAPTERS.md](docs/RUNTIME_ADAPTERS.md) | Workload kinds |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Protocol and failure model |
+| [docs/PRODUCTION.md](docs/PRODUCTION.md) | Production runbook |
+| [docs/OTA_CONTRACT.md](docs/OTA_CONTRACT.md) | OTA assignment + events |
+| [docs/openapi.yaml](docs/openapi.yaml) | REST API |
+
+Social assets: [docs/social/](docs/social/).
 
 ## Testing
 
 ```bash
-make check
-make test-race
-make live-smoke
-make qualify
+make check && make test-race && make live-smoke && make qualify
 ```
 
-CI verifies formatting, `go vet`, race-enabled Go tests, JavaScript syntax and all binaries. The integration tests also exercise dynamic selectors, pre-flight planning, approval and rollout lifecycle controls, strict inter-wave pauses, health failures, automatic rollback/retry, active-rollout deletion protection, metrics, session revocation, and typed runtime health/drift behavior.
+CI: formatting, `go vet`, race tests, JS syntax, all binaries — plus rollout lifecycle, health gates, rollback/retry, and typed adapter drift.
 
 ## License
 
 ### Open source (Apache-2.0)
 
-This repository is licensed under the [Apache License, Version 2.0](LICENSE).
-You may use, modify, and run it for personal, lab, and commercial production
-use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required).
+Licensed under the [Apache License, Version 2.0](LICENSE). Personal, lab, and commercial production use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required).
 
 ### Enterprise
 
