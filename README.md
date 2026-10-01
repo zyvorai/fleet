@@ -286,6 +286,8 @@ CI: formatting, `go vet`, race tests, JS syntax, all binaries — plus rollout l
 
 ## License
 
+Commercial subscriptions and support: see [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md).
+
 ### Open source (Apache-2.0)
 
 Licensed under the [Apache License, Version 2.0](LICENSE). Personal, lab, and commercial production use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required).
